@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Detection Smoke Test</title>
+</head>
+<body>
+  <h1>AI Slop Detection - Smoke Test</h1>
+  <p>Open the browser console to see results.</p>
+  <script type="module">
+    import { normalizeText, extractFeatures, featuresToArray } from './features.js';
+    import { scoreText } from './heuristics.js';
+    import { patterns } from './patterns-en.js';
+
+    const slopText = `In today's rapidly evolving digital landscape, it's crucial to delve into the multifaceted nature of artificial intelligence. This groundbreaking technology leverages cutting-edge algorithms to foster innovation and unleash unprecedented possibilities. The seamless integration of these robust systems showcases the transformative power of modern computing. Additionally, stakeholders must navigate the intricate interplay between technology and society. Furthermore, it is important to note that these pivotal developments are reshaping the very fabric of our world. The future looks bright as we embark on this exciting journey of discovery and empowerment.`;
+
+    const humanText = `I tried the new bus route yesterday. It was about 10 minutes faster than driving because I didn't have to find parking. The seats weren't great though, and it was pretty crowded around 5pm. I'd probably take it again on days when I don't need my car for errands.`;
+
+    console.log('=== Heuristic Detection Tests ===');
+
+    // Test 1: AI-slop text should score high
+    const normalized = normalizeText(slopText);
+    const features = extractFeatures(normalized);
+    const featureArray = featuresToArray(features);
+    const result = scoreText(normalized, patterns);
+
+    console.log('Features:', features);
+    console.log('Feature array:', featureArray);
+    console.log('Heuristic result:', result);
+    console.log('Score:', result.score);
+    console.log('Verdict:', result.verdict);
+    console.log('Signals:', result.signals.map(s => `${s.name} (${s.tier}: +${s.contribution.toFixed(1)})`));
+
+    const tests = [];
+
+    tests.push({
+      name: 'AI-slop text scores > 0',
+      pass: result.score > 0,
+      detail: `score=${result.score.toFixed(2)}`,
+    });
+    tests.push({
+      name: 'AI-slop verdict is "slop"',
+      pass: result.verdict === 'slop',
+      detail: `verdict=${result.verdict}`,
+    });
+    tests.push({
+      name: 'AI-slop text triggers >= 5 signals',
+      pass: result.signals.length >= 5,
+      detail: `${result.signals.length} signals`,
+    });
+
+    // Test 2: Human text should score low
+    const humanNorm = normalizeText(humanText);
+    const humanResult = scoreText(humanNorm, patterns);
+    tests.push({
+      name: 'Human text scores < 2.0',
+      pass: humanResult.score < 2.0,
+      detail: `score=${humanResult.score.toFixed(2)}`,
+    });
+    tests.push({
+      name: 'Human text verdict is "clean"',
+      pass: humanResult.verdict === 'clean',
+      detail: `verdict=${humanResult.verdict}`,
+    });
+
+    // Test 3: Feature extraction sanity
+    tests.push({
+      name: 'TTR is between 0 and 1',
+      pass: features.ttr > 0 && features.ttr <= 1,
+      detail: `ttr=${features.ttr.toFixed(3)}`,
+    });
+    tests.push({
+      name: 'Feature array has 8 elements',
+      pass: featureArray.length === 8,
+      detail: `length=${featureArray.length}`,
+    });
+    tests.push({
+      name: 'No NaN in feature array',
+      pass: featureArray.every(v => !isNaN(v)),
+      detail: featureArray.map(v => v.toFixed(3)).join(', '),
+    });
+
+    // Test 4: normalizeText strips zero-width chars
+    const withZW = 'hello\u200Bworld\uFEFF';
+    tests.push({
+      name: 'normalizeText strips zero-width chars',
+      pass: normalizeText(withZW) === 'helloworld',
+      detail: `"${normalizeText(withZW)}"`,
+    });
+
+    // Report
+    console.log('\n=== Test Results ===');
+    let passed = 0;
+    for (const t of tests) {
+      const icon = t.pass ? 'PASS' : 'FAIL';
+      const log = t.pass ? console.log : console.error;
+      log(`[${icon}] ${t.name} (${t.detail})`);
+      if (t.pass) passed++;
+    }
+    console.log(`\n${passed}/${tests.length} tests passed`);
+
+    // Test 5: ML inference (conditional - only if model files exist)
+    console.log('\n=== ML Inference Test (conditional) ===');
+    try {
+      // Check if model files exist BEFORE importing (avoids loading ~20MB of CDN deps)
+      const modelCheck = await fetch('../model-slop/model.onnx', { method: 'HEAD' }).catch(() => null);
+      if (modelCheck && modelCheck.ok) {
+        const { loadSlopModel, classifySlop, scoreForSlop } = await import('./slop-inference.js');
+        console.log('Model files found, testing ML inference...');
+        await loadSlopModel('../model-slop/model.onnx', '../model-slop/token_remap.json');
+
+        const mlResult = await classifySlop(slopText);
+        console.log('ML result on slop text:', mlResult);
+        console.log(`[${mlResult.aiProb > 0 ? 'PASS' : 'FAIL'}] classifySlop returns valid aiProb (${mlResult.aiProb.toFixed(3)})`);
+        console.log(`[${mlResult.inferenceMs > 0 ? 'PASS' : 'FAIL'}] Inference time: ${mlResult.inferenceMs.toFixed(0)}ms`);
+
+        const fullResult = await scoreForSlop(slopText);
+        console.log('Full pipeline result:', fullResult);
+        console.log(`[${fullResult.tier === 'heuristic' || fullResult.tier === 'ml' ? 'PASS' : 'FAIL'}] scoreForSlop tier: ${fullResult.tier}`);
+      } else {
+        console.log('Model files not found in ../model-slop/ - skipping ML test');
+        console.log('To test ML inference, place model.onnx and token_remap.json in scaffold/frontend/model-slop/');
+      }
+    } catch (err) {
+      console.error('ML import failed:', err.message);
+    }
+  </script>
+</body>
+</html>

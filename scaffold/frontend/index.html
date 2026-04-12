@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pnyx - Listening Infrastructure for Public Discourse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* Host platform (adapts per platform) */
+      --host-bg: #f4f2ee;
+      --host-card: #ffffff;
+      --host-border: #e0dfdb;
+      --host-text: #191919;
+      --host-secondary: #666666;
+      --host-link: #0a66c2;
+      --host-hover: #f5f5f5;
+      --host-nav-bg: #ffffff;
+
+      /* Pnyx identity - Espresso Dark */
+      --pnyx-primary: #3E2C20;
+      --pnyx-primary-deep: #2E1F15;
+      --pnyx-primary-mid: #6B5442;
+      --pnyx-primary-light: #8B7355;
+      --pnyx-surface: #F8F4F0;
+      --pnyx-surface-hover: rgba(62,44,32,0.04);
+
+      /* Attention - Aged Gold (PAUSE only) */
+      --pnyx-attention: #7C5E10;
+      --pnyx-attention-light: #FFFBEB;
+
+      /* Structure */
+      --pnyx-border: rgba(0,0,0,0.08);
+      --pnyx-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body {
+      font-family: 'Sora', -apple-system, system-ui, sans-serif;
+      background: var(--host-bg);
+      color: var(--host-text);
+      min-height: 100vh;
+    }
+
+    /* ─── Nav ─── */
+    .li-nav {
+      background: var(--host-nav-bg);
+      border-bottom: 1px solid var(--host-border);
+      padding: 0 24px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .li-nav-inner {
+      width: 100%; max-width: 1128px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .li-logo {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 1.1rem; font-weight: 700; color: var(--host-link);
+      text-decoration: none;
+    }
+    .li-logo svg { width: 34px; height: 34px; }
+    .li-search {
+      flex: 0 1 280px; height: 34px; border-radius: 4px; border: none;
+      background: #edf3f8; padding: 0 12px 0 36px;
+      font: inherit; font-size: 0.88rem; color: var(--host-text);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 110-10 5 5 0 010 10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: 10px center;
+    }
+    .li-nav-badge {
+      margin-left: auto; display: flex; align-items: center; gap: 5px;
+      font-size: 0.75rem; font-weight: 600; color: var(--pnyx-primary);
+      background: var(--pnyx-surface); padding: 4px 10px; border-radius: 12px;
+    }
+    .li-nav-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--pnyx-primary);
+    }
+
+    /* ─── Layout ─── */
+    .li-shell {
+      width: 100%; max-width: 1128px; margin: 0 auto; padding: 24px 0;
+      display: grid; grid-template-columns: 225px minmax(0, 1fr) 300px;
+      gap: 24px; align-items: start;
+    }
+
+    /* ─── Sidebar ─── */
+    .li-sidebar { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 8px; }
+    .li-card {
+      background: var(--host-card); border: 1px solid var(--host-border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .li-profile-card { text-align: center; padding: 12px 12px 16px; }
+    .li-profile-banner {
+      height: 56px; margin: -12px -12px 0;
+      background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      border-radius: 8px 8px 0 0;
+    }
+    .li-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 2px solid white; margin: -32px auto 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 600; color: white;
+      background: linear-gradient(135deg, #0a66c2, #004182);
+    }
+    .li-profile-name { font-size: 0.95rem; font-weight: 600; }
+    .li-profile-title { font-size: 0.78rem; color: var(--host-secondary); margin-top: 2px; }
+
+    /* ─── Feed ─── */
+    .li-feed { display: flex; flex-direction: column; gap: 8px; }
+
+    /* ─── Post card ─── */
+    .li-post {
+      background: var(--host-card);
+      border: 1px solid var(--host-border);
+      border-radius: 8px; overflow: hidden;
+      transition: border-color 0.4s, box-shadow 0.3s;
+    }
+    /* Risk-level left accent only */
+    .li-post[data-risk="high"] {
+      border-left: 3px solid var(--pnyx-primary);
+    }
+    .li-post[data-risk="medium"] {
+      border-left: 3px solid var(--pnyx-primary);
+    }
+    .li-post[data-risk="low"] {
+      border-left: 3px solid var(--pnyx-primary);
+    }
+    .li-post-body { padding: 12px 16px 0; }
+    .li-post-header { display: flex; gap: 8px; margin-bottom: 8px; }
+    .li-post-avatar {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 1rem; color: white;
+    }
+    .li-post-meta { flex: 1; min-width: 0; }
+    .li-post-author { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+    .li-post-headline { font-size: 0.75rem; color: var(--host-secondary); line-height: 1.3; }
+    .li-post-time {
+      font-size: 0.75rem; color: var(--host-secondary);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .li-post-text { font-size: 0.93rem; line-height: 1.5; padding-bottom: 12px; }
+
+    /* ─── Pnyx badge (compact, inline) ─── */
+    .pnyx-badge-row {
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+      padding: 6px 16px;
+      border-top: 1px solid var(--host-border);
+      font-size: 0.72rem; color: var(--host-secondary);
+    }
+    .pnyx-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 1px 6px; border-radius: 3px;
+      font-weight: 500; font-size: 0.68rem;
+      line-height: 1.3;
+    }
+    .pnyx-tag.danger { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); border: 1px solid var(--pnyx-border); }
+    .pnyx-tag.warn { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); border: 1px solid var(--pnyx-border); }
+    .pnyx-tag.good { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); border: 1px solid var(--pnyx-border); }
+    .pnyx-tag.muted { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); border: 1px solid var(--pnyx-border); }
+
+    .pnyx-dot { color: #ccc; }
+    .pnyx-meta { color: #999; font-size: 0.68rem; margin-left: auto; }
+
+    /* Reactions bar */
+    .li-post-reactions {
+      display: flex; justify-content: space-between; padding: 0 4px;
+      border-top: 1px solid var(--host-border);
+    }
+    .li-reaction-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 12px 8px; font-size: 0.82rem; color: var(--host-secondary);
+      font-weight: 600; background: none; border: none;
+      cursor: pointer; border-radius: 4px; font-family: inherit;
+    }
+    .li-reaction-btn:hover { background: var(--host-hover); color: var(--host-text); }
+
+    /* ─── Right panel ─── */
+    .pnyx-panel { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 8px; }
+    .pnyx-control {
+      background: var(--host-card); border: 1px solid var(--host-border);
+      border-radius: 8px; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .pnyx-control h2 {
+      font-size: 0.95rem; font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pnyx-control .subtitle { font-size: 0.78rem; color: var(--host-secondary); line-height: 1.4; }
+    .pnyx-control textarea {
+      width: 100%; min-height: 90px; resize: vertical;
+      border-radius: 8px; border: 1px solid var(--host-border);
+      background: #fafafa; color: var(--host-text);
+      padding: 10px; font: inherit; font-size: 0.88rem; line-height: 1.4;
+    }
+    .pnyx-control textarea:focus { outline: 1px solid var(--pnyx-primary); border-color: var(--pnyx-primary); }
+    .pnyx-control button {
+      border: none; border-radius: 20px;
+      background: var(--pnyx-primary); color: white;
+      font: inherit; font-size: 0.88rem; font-weight: 600;
+      padding: 8px 16px; cursor: pointer;
+    }
+    .pnyx-control button:hover { background: var(--pnyx-primary-deep); }
+    .pnyx-control button:disabled { opacity: 0.5; cursor: wait; }
+
+    /* Custom result uses same badge row style */
+    #custom-result .pnyx-badge-row {
+      padding: 8px 0; border-top: none;
+    }
+
+    .pnyx-info {
+      background: var(--host-card); border: 1px solid var(--host-border);
+      border-radius: 8px; padding: 14px;
+      font-size: 0.78rem; color: var(--host-secondary); line-height: 1.5;
+    }
+    .pnyx-info strong { color: var(--host-text); font-weight: 500; }
+
+    /* ─── Loading ─── */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(244,242,238,0.92);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; transition: opacity 0.4s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .loading-box {
+      background: white; border: 1px solid var(--host-border);
+      border-radius: 12px; padding: 24px 32px; min-width: 320px;
+      display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .loading-box h2 { font-size: 1rem; }
+    .loading-model { display: flex; flex-direction: column; gap: 4px; }
+    .loading-model .label {
+      display: flex; justify-content: space-between;
+      font-size: 0.8rem; color: var(--host-secondary);
+    }
+    .loading-model .label .status { font-weight: 500; }
+    .progress-bar {
+      height: 4px; border-radius: 999px;
+      background: #e0e0e0; overflow: hidden;
+    }
+    .progress-bar > span {
+      display: block; height: 100%; border-radius: inherit;
+      background: var(--pnyx-primary); transition: width 0.3s;
+    }
+    .loading-footer { font-size: 0.75rem; color: #999; text-align: center; }
+    .loading-desc { font-size: 0.72rem; color: #aaa; font-style: italic; margin-top: 2px; }
+
+    /* ─── Explanation + CTA ─── */
+    .pnyx-explain {
+      padding: 2px 16px 4px; font-size: 0.72rem; color: #999;
+      line-height: 1.3; font-style: italic;
+    }
+    .pnyx-cta {
+      display: inline-block; margin: 0 16px 6px;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: 0.68rem; font-weight: 500;
+      background: #f5f5f5; color: var(--host-secondary);
+      border: 1px solid #e0e0e0; cursor: default;
+    }
+
+    /* ─── AI blur (Wahrhaftigkeit) ─── */
+    .li-post.ai-blurred .li-post-text {
+      filter: blur(4px); user-select: none;
+      transition: filter 0.3s;
+      cursor: pointer; position: relative;
+    }
+    .li-post.ai-blurred .li-post-text:hover { filter: blur(2px); }
+    .li-post.ai-blurred .li-post-text::after {
+      content: 'Wahrhaftigkeit concern - click to reveal';
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 500; color: #8b6914;
+      filter: none; background: rgba(255,252,240,0.7);
+      border-radius: 4px; cursor: pointer;
+    }
+    .li-post.ai-revealed .li-post-text { filter: none; cursor: default; }
+    .li-post.ai-revealed .li-post-text::after { display: none; }
+
+    /* ─── Validity claims glossary ─── */
+    .pnyx-glossary { font-size: 0.75rem; line-height: 1.5; }
+    .pnyx-glossary dt {
+      font-weight: 600; color: var(--host-text); margin-top: 6px;
+    }
+    .pnyx-glossary dt:first-child { margin-top: 0; }
+    .pnyx-glossary dd {
+      color: var(--host-secondary); margin-left: 0; margin-bottom: 2px;
+    }
+
+    /* ─── Term links ─── */
+    .term-link {
+      color: var(--pnyx-primary-mid); text-decoration: none;
+      border-bottom: 1px dotted var(--pnyx-primary-mid); cursor: pointer;
+    }
+    .term-link:hover { color: var(--pnyx-primary-deep); }
+    .term-detail {
+      margin-top: 8px; padding: 8px 10px;
+      background: #fafafa; border: 1px solid var(--host-border);
+      border-radius: 6px; font-size: 0.75rem; line-height: 1.5;
+      color: var(--host-text); animation: fadeIn 0.2s;
+    }
+    .term-detail strong { display: block; margin-bottom: 2px; }
+    .term-detail .term-source { font-size: 0.68rem; color: #999; margin-top: 4px; font-style: italic; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ─── Sensitivity sliders ─── */
+    .pnyx-sliders { display: flex; flex-direction: column; gap: 8px; }
+    .pnyx-slider-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.78rem; color: var(--host-secondary);
+    }
+    .pnyx-slider-row label { flex: 0 0 110px; font-weight: 500; color: var(--host-text); }
+    .pnyx-slider-row input[type="range"] { flex: 1; accent-color: var(--pnyx-primary); }
+    .pnyx-slider-row .val { flex: 0 0 30px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    @media (max-width: 1100px) {
+      .li-shell { grid-template-columns: minmax(0, 1fr) 300px; }
+      .li-sidebar { display: none; }
+    }
+    @media (max-width: 768px) {
+      .li-shell { grid-template-columns: 1fr; padding: 12px; }
+      .pnyx-panel { position: static; }
+      .li-nav-badge { display: none; }
+    }
+
+    /* ─── V2: Claim expansion ─── */
+    .pnyx-claims-toggle { cursor: pointer; }
+    .pnyx-claims-expanded {
+      display: none; padding: 6px 16px 8px;
+      font-size: 0.75rem; color: var(--host-secondary); line-height: 1.5;
+      border-top: 1px dashed var(--host-border);
+    }
+    .pnyx-claims-expanded.open { display: block; }
+    .pnyx-claims-expanded ul { margin: 4px 0 4px 16px; padding: 0; }
+    .pnyx-claims-expanded li { margin-bottom: 3px; }
+    .pnyx-claim-risk {
+      font-size: 0.65rem; font-weight: 500; padding: 1px 5px;
+      border-radius: 3px; margin-left: 4px;
+    }
+    .pnyx-claim-risk.danger { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); }
+    .pnyx-claim-risk.warn { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); }
+    .pnyx-claim-risk.good { background: var(--pnyx-surface); color: var(--pnyx-primary-mid); }
+
+    .pnyx-explore-link {
+      font-size: 11px;
+      color: var(--pnyx-primary-mid);
+      text-decoration: none;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+    .pnyx-explore-link:hover { text-decoration: underline; }
+
+    /* ─── V2: Pause overlay ─── */
+    .pnyx-pause-overlay {
+      background: var(--pnyx-attention-light); padding: 8px 16px 12px;
+      border-top: 1px solid var(--host-border);
+      animation: pauseSlideDown 200ms ease-out;
+    }
+    @keyframes pauseSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .pnyx-pause-card {
+      background: white; border: 1px solid rgba(124,94,16,0.15);
+      border-radius: 8px; padding: 12px 16px;
+      box-shadow: var(--pnyx-shadow);
+    }
+    .pnyx-pause-header { font-size: 0.85rem; font-weight: 600; color: var(--host-text); margin-bottom: 2px; }
+    .pnyx-pause-subtitle { font-size: 0.75rem; color: var(--host-secondary); margin-bottom: 8px; }
+    .pnyx-pause-claims { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .pnyx-pause-claim {
+      display: flex; align-items: flex-start; gap: 6px;
+      font-size: 0.8rem; color: var(--host-text); cursor: pointer;
+      padding: 4px 6px; border-radius: 4px; transition: background 0.15s;
+    }
+    .pnyx-pause-claim:hover { background: var(--host-hover); }
+    .pnyx-pause-claim input[type="checkbox"] { margin-top: 3px; accent-color: var(--pnyx-primary); }
+    .pnyx-pause-prompt { font-size: 0.75rem; color: var(--host-secondary); font-style: italic; margin-bottom: 8px; }
+    .pnyx-pause-actions { display: flex; align-items: center; gap: 12px; }
+    .pnyx-pause-continue {
+      border: none; border-radius: 20px; background: var(--pnyx-attention); color: white;
+      font-family: inherit; font-size: 0.82rem; font-weight: 600;
+      padding: 6px 16px; cursor: pointer;
+    }
+    .pnyx-pause-continue:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pnyx-pause-continue:not(:disabled):hover { background: #5C4500; }
+    .pnyx-pause-skip { font-size: 0.75rem; color: #999; text-decoration: none; }
+    .pnyx-pause-skip:hover { color: #666; text-decoration: underline; }
+    .pnyx-pause-timer { font-size: 0.72rem; color: #999; margin-left: auto; }
+
+    /* ─── V2: Reply area (live replies) ─── */
+    .pnyx-reply-area {
+      background: var(--host-card); border: 1px solid var(--host-border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 10px 16px 12px; margin-top: -8px;
+    }
+    .pnyx-reply-textarea {
+      width: 100%; min-height: 60px; border: 1px solid var(--host-border);
+      border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 0.85rem;
+      resize: vertical; background: #fafafa; color: var(--host-text);
+    }
+    .pnyx-reply-textarea:focus { outline: 1px solid var(--pnyx-primary); border-color: var(--pnyx-primary); }
+    .pnyx-reply-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .pnyx-reply-submit {
+      border: none; border-radius: 20px; background: var(--pnyx-primary); color: white;
+      font: inherit; font-size: 0.82rem; font-weight: 600;
+      padding: 5px 14px; cursor: pointer; margin-left: auto;
+    }
+    .pnyx-reply-submit:hover { background: var(--pnyx-primary-deep); }
+
+    /* ─── V2: Reply tags ─── */
+    .pnyx-reply-tag {
+      display: inline-block; font-size: 11px; color: #666;
+      background: var(--pnyx-surface); border-left: 2px solid var(--pnyx-primary-light);
+      padding: 2px 8px; margin-bottom: 4px; border-radius: 0 4px 4px 0;
+    }
+    .pnyx-reply-tag.skipped {
+      background: var(--pnyx-surface); border-left-color: var(--pnyx-primary-light); color: #999;
+    }
+
+    /* ─── V2: Pre-scripted replies ─── */
+    .pnyx-reply {
+      padding: 10px 16px 10px 24px; border-top: 1px solid var(--host-border);
+      font-size: 0.85rem;
+    }
+    .pnyx-reply-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .pnyx-reply-avatar {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 600; color: white;
+    }
+    .pnyx-reply-author { font-size: 0.8rem; font-weight: 600; }
+    .pnyx-reply-text { font-size: 0.82rem; line-height: 1.45; color: var(--host-text); margin-top: 2px; }
+
+    /* ─── V2: Listening indicator ─── */
+    .pnyx-listening-indicator {
+      padding: 4px 16px 6px; font-size: 0.7rem;
+      color: var(--pnyx-primary); font-weight: 500;
+      border-top: 1px dotted var(--host-border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-box">
+    <h2>Pnyx</h2>
+    <div class="loading-model">
+      <div class="label">
+        <span>Erscheinung <em>(Wahrhaftigkeit)</em></span>
+        <span class="status" id="load-slop-status" style="color:#999">waiting</span>
+      </div>
+      <div class="progress-bar"><span id="load-slop-bar" style="width:0%"></span></div>
+      <div class="loading-desc">Detecting genuine human presence in discourse</div>
+    </div>
+    <div class="loading-model">
+      <div class="label">
+        <span>Habermas <em>(Wahrheit + Richtigkeit)</em></span>
+        <span class="status" id="load-discourse-status" style="color:#999">waiting</span>
+      </div>
+      <div class="progress-bar"><span id="load-discourse-bar" style="width:0%"></span></div>
+      <div class="loading-desc">Mapping claims in public discourse</div>
+    </div>
+    <div class="loading-footer">On-device inference - no data leaves your browser</div>
+  </div>
+</div>
+
+<nav class="li-nav">
+  <div class="li-nav-inner">
+    <a class="li-logo" href="#">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg>
+    </a>
+    <input class="li-search" type="text" placeholder="Search" disabled>
+    <div class="li-nav-badge">
+      <span class="dot"></span>
+      Pnyx
+    </div>
+  </div>
+</nav>
+
+<div class="li-shell">
+  <aside class="li-sidebar">
+    <div class="li-card li-profile-card">
+      <div class="li-profile-banner"></div>
+      <div class="li-avatar">A</div>
+      <div class="li-profile-name">Pnyx Analyst</div>
+      <div class="li-profile-title">Policy researcher</div>
+    </div>
+  </aside>
+
+  <main class="li-feed" id="feed">
+    <div style="text-align:center; padding:40px; color:var(--host-secondary)">Loading feed...</div>
+  </main>
+
+  <aside class="pnyx-panel">
+    <div class="pnyx-control">
+      <h2>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--pnyx-primary)"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Explore a claim
+      </h2>
+      <p class="subtitle">Paste a claim or post to analyze and explore through deliberation.</p>
+      <textarea id="input" placeholder="Paste a claim to explore...">Everyone knows the new policy was designed to silence critics. Share this before it disappears.</textarea>
+      <button id="submit">Analyze &amp; Explore</button>
+      <div id="custom-result"></div>
+      <a id="explore-direct" href="#" target="_blank" style="display:none; text-align:center; margin-top:6px; padding:8px 16px; border-radius:20px; background:var(--pnyx-attention); color:white; font-size:0.82rem; font-weight:600; text-decoration:none;">Open in Explore mode</a>
+    </div>
+    <div class="pnyx-control">
+      <h2>Sensitivity</h2>
+      <div class="pnyx-sliders">
+        <div class="pnyx-slider-row">
+          <label>Habermas</label>
+          <input type="range" id="thresh-habermas" min="0" max="100" value="60">
+          <span class="val" id="thresh-habermas-val">60</span>
+        </div>
+        <div class="pnyx-slider-row">
+          <label>Erscheinung</label>
+          <input type="range" id="thresh-erscheinung" min="0" max="100" value="50">
+          <span class="val" id="thresh-erscheinung-val">50</span>
+        </div>
+      </div>
+    </div>
+    <div class="pnyx-info">
+      <div style="font-size:0.72rem;color:#999">
+        <a href="#" class="term-link" data-term="wahrheit">Wahrheit</a> ·
+        <a href="#" class="term-link" data-term="richtigkeit">Richtigkeit</a> ·
+        <a href="#" class="term-link" data-term="wahrhaftigkeit">Wahrhaftigkeit</a> ·
+        <a href="#" class="term-link" data-term="zuhoeren">Zuh&ouml;ren</a> ·
+        <a href="#" class="term-link" data-term="erscheinungsraum">Erscheinungsraum</a>
+      </div>
+      <div class="term-detail" id="term-detail" style="display:none"></div>
+    </div>
+  </aside>
+</div>
+
+<script type="module">
+  // ─── Worker-based inference (off main thread) ─────────────
+  const worker = new Worker('./inference-worker.js', { type: 'module' });
+  const pending = new Map();
+  let workerReady;
+  const workerReadyPromise = new Promise(r => { workerReady = r; });
+
+  worker.onmessage = (e) => {
+    const { type, id, scores, model, status: s, detail, message } = e.data;
+    if (type === 'model-status') {
+      updateModelStatus(model, s, detail);
+    } else if (type === 'ready') {
+      workerReady();
+    } else if (type === 'result' && pending.has(id)) {
+      pending.get(id).resolve(scores);
+      pending.delete(id);
+    } else if (type === 'error' && id && pending.has(id)) {
+      pending.get(id).reject(new Error(message));
+      pending.delete(id);
+    }
+  };
+
+  function updateModelStatus(model, s, detail) {
+    const prefix = model === 'habermas' ? 'discourse' : 'slop';
+    const statusEl = document.getElementById(`load-${prefix}-status`);
+    const barEl = document.getElementById(`load-${prefix}-bar`);
+    if (!statusEl || !barEl) return;
+    const stages = { checking: 20, loading: 40, tokenizer: 60, model: 80, ready: 100, placeholder: 100, heuristic: 100 };
+    barEl.style.width = (stages[s] || 0) + '%';
+    if (s === 'ready') {
+      statusEl.textContent = 'ready'; statusEl.style.color = '#3E2C20';
+    } else if (s === 'placeholder' || s === 'heuristic') {
+      statusEl.textContent = s; statusEl.style.color = '#7C5E10';
+      barEl.style.background = '#7C5E10';
+    } else {
+      statusEl.textContent = s + '...';
+    }
+  }
+
+  let scoreId = 0;
+  function scorePost(text) {
+    const id = 'score-' + (++scoreId);
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
+      worker.postMessage({ type: 'score', id, text });
+    });
+  }
+
+  worker.postMessage({ type: 'init' });
+
+  // ─── V2: Dynamic imports ─────────────────────────────────
+  const { extractClaims } = await import('./claim-extractor.js');
+  const { createPauseOverlay, dismissPause } = await import('./pause-layer.js');
+  const { renderReplyTag, renderSkippedTag, renderReply, renderListeningIndicator } = await import('./reply-tags.js');
+
+  // Store extracted claims per post for pause layer lookup
+  const postClaims = new Map();
+
+  const DEMO_POSTS = [
+    { id:"post-1", author:"Mira Hahn", headline:"Public affairs correspondent", handle:"@civicwire", timestamp:"2m ago", avatar:{initials:"MH",color:"#c0392b"}, text:"Officials are hiding the real numbers again. This proves the transit outage was deliberate. Share before the post disappears." },
+    { id:"post-2", author:"Jonas Keller", headline:"Policy analyst at Urban Research Institute", handle:"@policynotes", timestamp:"8m ago", avatar:{initials:"JK",color:"#2980b9"}, text:"Early reports suggest the outage may be linked to maintenance delays, but the public statement is still thin. According to the city update, the review is ongoing." },
+    { id:"post-3", author:"Lea Sommer", headline:"Community engagement lead", handle:"@townhallfeed", timestamp:"14m ago", avatar:{initials:"LS",color:"#27ae60"}, text:"I get why people are frustrated, but blaming one group without evidence makes this harder to solve. What information would actually help here?" },
+    { id:"post-4", author:"Niko Brandt", headline:"Independent commentator", handle:"@hottakesdaily", timestamp:"27m ago", avatar:{initials:"NB",color:"#8e44ad"}, text:"Anyone who still believes the official line is naive. Everyone knows this was coordinated and the media will never admit it." },
+    { id:"post-7", author:"Alex Neumann", headline:"Digital strategy consultant", handle:"@futureforward", timestamp:"33m ago", avatar:{initials:"AN",color:"#607d8b"}, text:"In today's rapidly evolving landscape, it's crucial that we navigate these challenges with a holistic approach. The tapestry of urban infrastructure demands robust, forward-thinking solutions that leverage synergies across all stakeholders. Let's delve into this important conversation and foster meaningful dialogue." },
+    { id:"post-5", author:"Sara Demir", headline:"Senior analyst, municipal governance", handle:"@briefingroom", timestamp:"42m ago", avatar:{initials:"SD",color:"#d35400"}, text:"The latest report cites two independent inspections and still leaves open questions. We should compare the claims before drawing conclusions." },
+    { id:"post-6", author:"Tom Richter", headline:"Infrastructure reporter at CityPulse", handle:"@urbanpulse", timestamp:"1h ago", avatar:{initials:"TR",color:"#16a085"}, text:"The infrastructure budget was cut by 15% last year according to the city council minutes, which likely contributed to the maintenance backlog. However, correlation isn't causation - we need the full audit before pointing fingers." },
+  ];
+
+  // Inference moved to inference-worker.js (off main thread)
+
+  // ─── Labels (Habermasian validity claims) ───────────────────
+  function crLabel(p) {
+    if (p > 0.65) return { label: 'Wahrheit: high', cls: 'danger', risk: 'high' };
+    if (p >= 0.35) return { label: 'Wahrheit: medium', cls: 'warn', risk: 'medium' };
+    return { label: 'Wahrheit: low', cls: 'good', risk: 'low' };
+  }
+  function aqLabel(p) {
+    if (p > 0.65) return { label: 'Richtigkeit: strong', cls: 'good' };
+    if (p >= 0.35) return { label: 'Richtigkeit: mixed', cls: 'warn' };
+    return { label: 'Richtigkeit: weak', cls: 'danger' };
+  }
+  function getExplanation(cr, aq) {
+    if (cr > 0.65 && aq < 0.35) return "Validity claims violated: unsupported truth claim without justification.";
+    if (cr > 0.65) return "Wahrheit concern: consequential claims without grounding or attribution.";
+    if (aq < 0.35) return "Richtigkeit concern: position stated without reasons or evidence.";
+    return "Claims are qualified and reasoning is present.";
+  }
+  function getCTA(cr, aq) {
+    if (cr > 0.65) return "Ask for evidence";
+    if (aq < 0.35) return "Add a reason";
+    return "Keep the exchange open";
+  }
+
+  // ─── Render compact badge row ──────────────────────────────
+  function renderBadgeRow(scores, includeExplain = false, claimCount = 0) {
+    const cr = crLabel(scores.claimRiskProb);
+    const aq = aqLabel(scores.argQualityProb);
+    const crPct = Math.round(scores.claimRiskProb * 100);
+    const aqPct = Math.round(scores.argQualityProb * 100);
+
+    let aiBadge = '';
+    if (scores.ai && scores.ai.aiProb >= 0.5) {
+      const ind = scores.ai.tier === 'heuristic' ? ' (pattern)' : '';
+      aiBadge = `<span class="pnyx-dot">&middot;</span><span class="pnyx-tag warn">Wahrhaftigkeit: AI-likely${ind}</span>`;
+    } else if (scores.ai && scores.ai.aiProb >= 0.3) {
+      aiBadge = `<span class="pnyx-dot">&middot;</span><span class="pnyx-tag muted">Wahrhaftigkeit: uncertain</span>`;
+    }
+
+    const explain = includeExplain ? `
+      <div class="pnyx-explain">${getExplanation(scores.claimRiskProb, scores.argQualityProb)}</div>
+      <span class="pnyx-cta">${getCTA(scores.claimRiskProb, scores.argQualityProb)}</span>
+    ` : '';
+
+    return `
+      <div class="pnyx-badge-row pnyx-claims-toggle">
+        <span class="pnyx-tag ${cr.cls}">${cr.label} ${crPct}%</span>
+        <span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag ${aq.cls}">${aq.label} ${aqPct}%</span>
+        ${aiBadge}
+        <span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag good">${claimCount} claim${claimCount === 1 ? '' : 's'}</span>
+      </div>
+      ${explain}
+    `;
+  }
+
+  function renderPost(post, scores, index) {
+    const cr = crLabel(scores.claimRiskProb);
+    const aiBlurred = scores.ai && scores.ai.aiProb >= 0.5;
+    const claims = extractClaims(post.text, scores.claimRiskProb);
+    postClaims.set(post.id, claims);
+
+    const claimsHtml = claims.length > 0 ? `
+      <div class="pnyx-claims-expanded" id="claims-${post.id}">
+        Claims detected:
+        <ul>
+          ${claims.map(c => {
+            const riskCls = c.risk === 'high' ? 'danger' : c.risk === 'medium' ? 'warn' : 'good';
+            const riskText = c.risk === 'high' ? 'unsupported' : c.risk === 'medium' ? 'unverified' : 'grounded';
+            return `<li>"${c.text}" <span class="pnyx-claim-risk ${riskCls}">${riskText}</span> <a class="pnyx-explore-link" href="explore.html?claim=${encodeURIComponent(c.text)}&risk=${c.risk}" target="_blank">Explore</a></li>`;
+          }).join('')}
+        </ul>
+        Argument structure: ${scores.argQualityProb < 0.35 ? 'assertion without evidence' :
+          scores.argQualityProb < 0.65 ? 'partial reasoning' : 'structured argument'}
+      </div>
+    ` : '';
+
+    return `
+      <article class="li-post${aiBlurred ? ' ai-blurred' : ''}" data-risk="${cr.risk}" data-post-id="${post.id}">
+        <div class="li-post-body">
+          <div class="li-post-header">
+            <div class="li-post-avatar" style="background:${post.avatar.color}">${post.avatar.initials}</div>
+            <div class="li-post-meta">
+              <div class="li-post-author">${post.author}</div>
+              <div class="li-post-headline">${post.headline}</div>
+              <div class="li-post-time">${post.timestamp} &middot; <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 108 8A8 8 0 008 0zm0 14.5A6.5 6.5 0 1114.5 8 6.51 6.51 0 018 14.5zM8.5 4h-1v4.5l3.5 2 .5-.82L8.5 8V4z"/></svg></div>
+            </div>
+          </div>
+          <p class="li-post-text">${post.text}</p>
+        </div>
+        ${renderBadgeRow(scores, true, claims.length)}
+        ${claimsHtml}
+        <div class="li-post-reactions">
+          <button class="li-reaction-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg> Like</button>
+          <button class="li-reaction-btn pnyx-comment-btn" data-post-id="${post.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Comment</button>
+          <button class="li-reaction-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Repost</button>
+          <button class="li-reaction-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send</button>
+        </div>
+        <div class="pnyx-replies" id="replies-${post.id}"></div>
+      </article>
+    `;
+  }
+
+  async function renderFeed() {
+    const feedEl = document.getElementById('feed');
+    feedEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--host-secondary)">Scoring posts...</div>';
+    const results = await Promise.all(DEMO_POSTS.map(p => scorePost(p.text)));
+    feedEl.innerHTML = DEMO_POSTS.map((post, i) => renderPost(post, results[i], i)).join('');
+
+    // Click-to-reveal blurred AI posts
+    feedEl.querySelectorAll('.ai-blurred .li-post-text').forEach(el => {
+      el.addEventListener('click', () => {
+        el.closest('.li-post').classList.replace('ai-blurred', 'ai-revealed');
+      });
+    });
+
+    // Badge row click to expand/collapse claims
+    feedEl.querySelectorAll('.pnyx-claims-toggle').forEach(row => {
+      row.addEventListener('click', () => {
+        const article = row.closest('.li-post');
+        const postId = article.dataset.postId;
+        const expanded = document.getElementById(`claims-${postId}`);
+        if (expanded) expanded.classList.toggle('open');
+      });
+    });
+
+    // Comment buttons -> Pause overlay
+    feedEl.querySelectorAll('.pnyx-comment-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const postId = btn.dataset.postId;
+        const article = btn.closest('.li-post');
+
+        // Toggle: remove existing overlay if present
+        const existing = article.querySelector('.pnyx-pause-overlay');
+        if (existing) { dismissPause(postId); return; }
+
+        // Remove any existing reply area after the article
+        const nextEl = article.nextElementSibling;
+        if (nextEl && nextEl.classList.contains('pnyx-reply-area')) {
+          nextEl.remove();
+        }
+
+        const claims = postClaims.get(postId) || [];
+        const overlay = createPauseOverlay(
+          postId,
+          claims,
+          // onContinue
+          (selectedClaims) => {
+            dismissPause(postId);
+            const replyArea = document.createElement('div');
+            replyArea.className = 'pnyx-reply-area';
+            const tagText = selectedClaims[0].length > 60
+              ? selectedClaims[0].substring(0, 57) + '...'
+              : selectedClaims[0];
+            replyArea.innerHTML = `
+              <textarea class="pnyx-reply-textarea" placeholder="Write a reply...">[Responding to: "${tagText}"]
+</textarea>
+              <div class="pnyx-reply-actions">
+                ${renderReplyTag(tagText)}
+                <button class="pnyx-reply-submit">Post</button>
+              </div>
+            `;
+            article.after(replyArea);
+            replyArea.querySelector('textarea').focus();
+          },
+          // onSkip
+          () => {
+            dismissPause(postId);
+            const replyArea = document.createElement('div');
+            replyArea.className = 'pnyx-reply-area';
+            replyArea.innerHTML = `
+              <textarea class="pnyx-reply-textarea" placeholder="Write a reply..."></textarea>
+              <div class="pnyx-reply-actions">
+                ${renderSkippedTag()}
+                <button class="pnyx-reply-submit">Post</button>
+              </div>
+            `;
+            article.after(replyArea);
+            replyArea.querySelector('textarea').focus();
+          }
+        );
+
+        // Insert overlay after the reactions bar
+        const reactions = article.querySelector('.li-post-reactions');
+        reactions.after(overlay);
+      });
+    });
+
+    // Inject pre-scripted replies for demonstration
+    injectDemoReplies();
+  }
+
+  function injectDemoReplies() {
+    // Post-1 (Mira Hahn - conspiracy): one engaged reply, one skipped
+    const replies1 = document.getElementById('replies-post-1');
+    if (replies1) {
+      replies1.innerHTML =
+        renderReply(
+          'Jonas Keller', '#2980b9', 'JK',
+          'The maintenance timeline doesn\'t support that claim. The city published inspection logs last week.',
+          renderReplyTag('transit outage was deliberate')
+        ) +
+        renderReply(
+          'Niko Brandt', '#8e44ad', 'NB',
+          'Exactly, wake up people!',
+          renderSkippedTag()
+        ) +
+        renderListeningIndicator(1, 2, 1);
+    }
+
+    // Post-3 (Lea Sommer - constructive): one engaged reply
+    const replies3 = document.getElementById('replies-post-3');
+    if (replies3) {
+      replies3.innerHTML =
+        renderReply(
+          'Sara Demir', '#d35400', 'SD',
+          'The audit report from March would be a good start. I can pull the relevant sections.',
+          renderReplyTag('What information would actually help here?')
+        ) +
+        renderListeningIndicator(1, 1, 0);
+    }
+  }
+
+  async function analyzeCustom() {
+    const btn = document.getElementById('submit');
+    const text = document.getElementById('input').value.trim();
+    const out = document.getElementById('custom-result');
+    const exploreLink = document.getElementById('explore-direct');
+    if (!text) return;
+    btn.disabled = true; btn.textContent = 'Analyzing...';
+    exploreLink.style.display = 'none';
+    out.innerHTML = '<div style="font-size:0.8rem;color:#999;padding:6px 0">Scoring...</div>';
+    try {
+      const scores = await scorePost(text);
+      const customClaims = extractClaims(text, scores.claimRiskProb);
+      out.innerHTML = renderBadgeRow(scores, true, customClaims.length);
+      exploreLink.href = `explore.html?claim=${encodeURIComponent(text)}&risk=${crLabel(scores.claimRiskProb).risk}`;
+      exploreLink.style.display = 'block';
+    } catch (e) { out.innerHTML = `<div style="font-size:0.8rem;color:#6B5442">Error: ${e.message}</div>`; }
+    finally { btn.disabled = false; btn.textContent = 'Analyze & Explore'; }
+  }
+
+  document.getElementById('submit').addEventListener('click', analyzeCustom);
+  document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) analyzeCustom();
+  });
+
+  // ─── Term definitions ──────────────────────────────────────
+  const TERMS = {
+    wahrheit: {
+      title: 'Wahrheit (Truth)',
+      text: 'Every speech act implicitly claims to say something true about the world. When someone asserts "the outage was deliberate," they raise a truth claim that can be challenged and defended with evidence. Our Habermas model detects when posts make strong factual claims without grounding - the higher the score, the more the post asserts without support.',
+      source: 'Habermas, Theory of Communicative Action (1981), Vol. 1',
+    },
+    richtigkeit: {
+      title: 'Richtigkeit (Rightness)',
+      text: 'Beyond factual truth, rational discourse requires justification - reasons, evidence, logical structure. A post that states a position without offering any reasoning violates this norm. Our model measures argument quality: does the speaker give reasons for their claims, cite sources, or acknowledge counterpoints?',
+      source: 'Habermas, Theory of Communicative Action (1981), Vol. 1',
+    },
+    wahrhaftigkeit: {
+      title: 'Wahrhaftigkeit (Sincerity)',
+      text: 'The third validity claim asks: is the speaker genuine? In Arendt\'s terms, public discourse requires Erscheinung - a real human appearing in the public space. AI-generated text simulates speech without a speaker behind it. It discloses a "what" but never a "who." Our Erscheinung model detects this absence.',
+      source: 'Arendt, The Human Condition (1958); Habermas, TCA (1981)',
+    },
+    zuhoeren: {
+      title: 'Zuh\u00f6ren (Listening)',
+      text: 'Discourse requires not just valid speech but genuine reception. Pnyx\'s Pause Layer makes listening visible: before responding, you see what claims were made and choose which to engage with. This transforms reply from reaction into response.',
+      source: 'Esau, Social Media + Society (2025); Habermas, TCA (1981)',
+    },
+    erscheinungsraum: {
+      title: 'Erscheinungsraum (Space of Appearance)',
+      text: 'Hannah Arendt\'s concept of the public realm as a space where people appear to each other through speech and action. Making listening visible creates the conditions for authentic political encounter - not just who spoke, but who heard.',
+      source: 'Arendt, The Human Condition (1958), \u00a736-37',
+    },
+  };
+
+  document.querySelectorAll('.term-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const detail = document.getElementById('term-detail');
+      const term = TERMS[link.dataset.term];
+      if (detail.style.display !== 'none' && detail.dataset.active === link.dataset.term) {
+        detail.style.display = 'none';
+        return;
+      }
+      detail.dataset.active = link.dataset.term;
+      detail.innerHTML = `<strong>${term.title}</strong>${term.text}<div class="term-source">${term.source}</div>`;
+      detail.style.display = 'block';
+    });
+  });
+
+  // ─── Sensitivity sliders ──────────────────────────────────
+  for (const name of ['habermas', 'erscheinung']) {
+    const slider = document.getElementById(`thresh-${name}`);
+    const val = document.getElementById(`thresh-${name}-val`);
+    slider.addEventListener('input', () => { val.textContent = slider.value; });
+  }
+
+  async function boot() {
+    await workerReadyPromise;
+    const overlay = document.getElementById('loading-overlay');
+    overlay.classList.add('hidden');
+    setTimeout(() => overlay.remove(), 500);
+    await renderFeed();
+  }
+
+  boot();
+</script>
+</body>
+</html>

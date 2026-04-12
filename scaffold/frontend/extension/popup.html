@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: 'Sora', -apple-system, system-ui, sans-serif;
+      font-size: 13px;
+      color: #191919;
+      margin: 0;
+    }
+    h1 {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .slider-group {
+      margin-bottom: 12px;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .slider-label .name { font-weight: 600; }
+    .slider-label .val { color: #666; }
+    input[type="range"] {
+      width: 100%;
+      margin: 0;
+    }
+    .toggle-group {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .toggle-label input[type="checkbox"] {
+      accent-color: #3E2C20;
+    }
+    .info {
+      font-size: 10px;
+      color: #999;
+      margin-top: 12px;
+      border-top: 1px solid #eee;
+      padding-top: 8px;
+    }
+    .term {
+      display: block;
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pnyx</h1>
+  <div class="subtitle">Listening infrastructure, on-device</div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span class="name">Habermas sensitivity</span>
+      <span class="val" id="h-val">60</span>
+    </div>
+    <input type="range" id="h-slider" min="0" max="100" value="60">
+  </div>
+
+  <div class="slider-group">
+    <div class="slider-label">
+      <span class="name">Erscheinung sensitivity</span>
+      <span class="val" id="e-val">50</span>
+    </div>
+    <input type="range" id="e-slider" min="0" max="100" value="50">
+  </div>
+
+  <div class="toggle-group">
+    <label class="toggle-label">
+      <input type="checkbox" id="pause-toggle" checked>
+      <span>Enable Pause Layer</span>
+    </label>
+    <label class="toggle-label">
+      <input type="checkbox" id="tags-toggle" checked>
+      <span>Enable Listening Tags</span>
+    </label>
+  </div>
+
+  <div class="info">
+    <span class="term"><strong>Wahrheit</strong> (Truth) - claim risk</span>
+    <span class="term"><strong>Richtigkeit</strong> (Rightness) - argument quality</span>
+    <span class="term"><strong>Wahrhaftigkeit</strong> (Sincerity) - AI detection</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

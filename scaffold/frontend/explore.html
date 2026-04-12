@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pnyx - Explore Claim</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="explore.css">
+</head>
+<body>
+  <header class="explore-header">
+    <div class="explore-header-inner">
+      <h1 class="explore-logo">Pnyx <span class="explore-logo-sub">Explore</span></h1>
+      <button class="explore-config-toggle" id="config-toggle" aria-label="API settings">Settings</button>
+    </div>
+  </header>
+
+  <div class="explore-config" id="config-panel" hidden>
+    <div class="explore-config-inner">
+      <label class="explore-config-label">
+        API Key
+        <input type="password" id="config-key" class="explore-config-input" placeholder="sk-..." autocomplete="off">
+      </label>
+      <label class="explore-config-label">
+        Base URL
+        <input type="text" id="config-base-url" class="explore-config-input" placeholder="https://openrouter.ai/api/v1" value="https://openrouter.ai/api/v1">
+      </label>
+      <label class="explore-config-label">
+        Model
+        <input type="text" id="config-model" class="explore-config-input" placeholder="deepseek/deepseek-chat-v3-0324" value="deepseek/deepseek-chat-v3-0324">
+      </label>
+      <button class="explore-config-save" id="config-save">Save</button>
+      <p class="explore-config-hint">Key stored in localStorage only. Never sent anywhere except your chosen API endpoint.</p>
+    </div>
+  </div>
+
+  <main class="explore-layout">
+    <div class="explore-main" id="explore-root">
+      <!-- Populated by explore.js -->
+    </div>
+    <aside class="explore-sidebar" id="position-chain">
+      <h2 class="explore-sidebar-title">Position Chain</h2>
+      <div class="explore-chain-entries" id="chain-entries">
+        <!-- Populated by explore.js -->
+      </div>
+    </aside>
+  </main>
+
+  <script type="module" src="explore.js"></script>
+</body>
+</html>
