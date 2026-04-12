@@ -1,0 +1,359 @@
+[
+  {
+    "claim": "Serbian forces conducted military exercises near Kosovo border",
+    "first_seen": {
+      "date": "20260318T083000Z",
+      "source": "tanjug.rs",
+      "title": "Serbian Armed Forces begin scheduled spring exercises in Raska district",
+      "url": "https://tanjug.rs/en/serbia/serbian-armed-forces-spring-exercises-2026",
+      "source_type": "state-affiliated"
+    },
+    "source_timeline": [
+      {
+        "date": "20260318T083000Z",
+        "domain": "tanjug.rs",
+        "title": "Serbian Armed Forces begin scheduled spring exercises in Raska district",
+        "country": "Serbia",
+        "language": "Serbian",
+        "credibility_type": "state-affiliated",
+        "factuality": "low"
+      },
+      {
+        "date": "20260318T143000Z",
+        "domain": "b92.net",
+        "title": "Army drills near administrative line with Kosovo raise concerns",
+        "country": "Serbia",
+        "language": "English",
+        "credibility_type": "unknown",
+        "factuality": "unknown"
+      },
+      {
+        "date": "20260319T061500Z",
+        "domain": "rt.com",
+        "title": "Serbia flexes military muscle as NATO expansion threatens Balkans stability",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "low"
+      },
+      {
+        "date": "20260319T101500Z",
+        "domain": "reuters.com",
+        "title": "Serbia holds military exercises near Kosovo, drawing Western scrutiny",
+        "country": "United Kingdom",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260319T153000Z",
+        "domain": "balkaninsight.com",
+        "title": "Serbian army drills near Kosovo border: routine or provocation?",
+        "country": "Bosnia And Herzegovina",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260320T090000Z",
+        "domain": "sputniknews.com",
+        "title": "Kosovo Albanians provoking Belgrade, forcing defensive posture - analysts",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "low"
+      },
+      {
+        "date": "20260320T121500Z",
+        "domain": "dw.com",
+        "title": "Tensions rise as Serbia holds exercises near Kosovo",
+        "country": "Germany",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "unknown"
+      }
+    ],
+    "source_breakdown": {
+      "state-affiliated": 4,
+      "independent": 2,
+      "unknown": 1
+    },
+    "mainstream_pickup": [
+      {"source": "reuters.com", "date": "20260319T101500Z", "type": "independent"},
+      {"source": "balkaninsight.com", "date": "20260319T153000Z", "type": "independent"},
+      {"source": "dw.com", "date": "20260320T121500Z", "type": "state-affiliated"}
+    ],
+    "fringe_amplification": {
+      "count": 14,
+      "peak_date": "20260320T000000Z",
+      "peak_window_hours": 24,
+      "notable_amplifiers": ["sputniknews.com", "rt.com", "southfront.org"]
+    },
+    "ifcn_verdict": {
+      "checked": true,
+      "verdicts": [
+        {
+          "publisher": "Istinomer",
+          "rating": "Mostly True",
+          "title": "Did Serbia conduct military exercises near Kosovo?",
+          "url": "https://istinomer.rs/fact-check/serbian-exercises-kosovo-2026"
+        }
+      ]
+    },
+    "grounding_score": 0.58,
+    "grounding_label": "mixed-evidence",
+    "grounding_reason": "Core claim confirmed by Reuters and Balkan Insight, but framing as aggressive posture vs. routine drill varies by source type. First reported by Serbian state media 18h before independent pickup. 4/7 sources are state-affiliated.",
+    "synthesis": "This claim first appeared on March 18 via Serbian state news agency Tanjug, which characterized the exercises as routine spring drills. Within 24 hours, Russian state media (RT, Sputnik) amplified the story with adversarial framing against NATO/Kosovo. Independent outlets Reuters and Balkan Insight confirmed the exercises occurred but noted the proximity to the Kosovo border was unusual. Istinomer rated the core claim as mostly true, though the narrative framing diverged sharply between state-affiliated and independent sources.",
+    "article_count": 7
+  },
+  {
+    "claim": "Chinese tech investment in Western Balkans raises security concerns",
+    "first_seen": {
+      "date": "20260225T110000Z",
+      "source": "cepa.org",
+      "title": "Huawei's Safe City projects in the Balkans: surveillance infrastructure or development aid?",
+      "url": "https://cepa.org/analysis/huawei-safe-city-balkans-2026",
+      "source_type": "independent"
+    },
+    "source_timeline": [
+      {
+        "date": "20260225T110000Z",
+        "domain": "cepa.org",
+        "title": "Huawei's Safe City projects in the Balkans: surveillance infrastructure or development aid?",
+        "country": "United States",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260226T080000Z",
+        "domain": "politico.eu",
+        "title": "EU warns Balkan states over Chinese tech deals",
+        "country": "Belgium",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260227T093000Z",
+        "domain": "globalresearch.ca",
+        "title": "Western hysteria over Chinese Balkans investment masks US tech imperialism",
+        "country": "Canada",
+        "language": "English",
+        "credibility_type": "euvsdisinfo-flagged",
+        "factuality": "low"
+      },
+      {
+        "date": "20260228T140000Z",
+        "domain": "chinadaily.com.cn",
+        "title": "China-Balkans tech cooperation brings mutual prosperity",
+        "country": "China",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "low"
+      },
+      {
+        "date": "20260301T163000Z",
+        "domain": "ft.com",
+        "title": "Western Balkans become testing ground for Chinese surveillance exports",
+        "country": "United Kingdom",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260302T071500Z",
+        "domain": "n1info.com",
+        "title": "Belgrade installs Huawei cameras despite EU data protection warnings",
+        "country": "Serbia",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260303T120000Z",
+        "domain": "strategic-culture.org",
+        "title": "Anglo-American intelligence apparatus targets Chinese development in Balkans",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "euvsdisinfo-flagged",
+        "factuality": "low"
+      },
+      {
+        "date": "20260305T091500Z",
+        "domain": "atlanticcouncil.org",
+        "title": "Mapping Chinese tech infrastructure in the Western Balkans",
+        "country": "United States",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      }
+    ],
+    "source_breakdown": {
+      "state-affiliated": 1,
+      "independent": 5,
+      "euvsdisinfo-flagged": 2
+    },
+    "mainstream_pickup": [
+      {"source": "politico.eu", "date": "20260226T080000Z", "type": "independent"},
+      {"source": "ft.com", "date": "20260301T163000Z", "type": "independent"},
+      {"source": "atlanticcouncil.org", "date": "20260305T091500Z", "type": "independent"}
+    ],
+    "fringe_amplification": {
+      "count": 8,
+      "peak_date": "20260303T000000Z",
+      "peak_window_hours": 48,
+      "notable_amplifiers": ["globalresearch.ca", "strategic-culture.org", "mintpressnews.com"]
+    },
+    "ifcn_verdict": {
+      "checked": true,
+      "verdicts": []
+    },
+    "grounding_score": 0.72,
+    "grounding_label": "well-grounded",
+    "grounding_reason": "5/8 sources are high-credibility independents. Claim originated from CEPA (think tank) and was corroborated by Politico, FT, and Atlantic Council with specific evidence. Counter-narratives from GlobalResearch and Strategic Culture follow typical deflection patterns.",
+    "synthesis": "This claim originated from CEPA on February 25 with a detailed analysis of Huawei Safe City deployments in Belgrade and Tirana. Within a week, Politico and the Financial Times independently corroborated the security concerns with their own reporting. The counter-narrative - that Western concern masks US tech imperialism - appeared on GlobalResearch and Strategic Culture Foundation, both EUvsDisinfo-flagged outlets. The strong independent source ratio (5/8) and specific evidence base make this a well-grounded claim.",
+    "article_count": 8
+  },
+  {
+    "claim": "Russian disinformation campaign targets European Parliament elections",
+    "first_seen": {
+      "date": "20260310T060000Z",
+      "source": "euvsdisinfo.eu",
+      "title": "New wave of pro-Kremlin disinformation ahead of EP elections identified",
+      "url": "https://euvsdisinfo.eu/report/ep-elections-disinfo-wave-2026",
+      "source_type": "independent"
+    },
+    "source_timeline": [
+      {
+        "date": "20260310T060000Z",
+        "domain": "euvsdisinfo.eu",
+        "title": "New wave of pro-Kremlin disinformation ahead of EP elections identified",
+        "country": "Belgium",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260310T140000Z",
+        "domain": "lemonde.fr",
+        "title": "La Russie intensifie ses opérations de désinformation avant les européennes",
+        "country": "France",
+        "language": "French",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260311T080000Z",
+        "domain": "rt.com",
+        "title": "EU's 'disinformation' claims are censorship campaign against alternative media",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "low"
+      },
+      {
+        "date": "20260311T103000Z",
+        "domain": "spiegel.de",
+        "title": "Verfassungsschutz warnt vor russischen Einflussoperationen zur Europawahl",
+        "country": "Germany",
+        "language": "German",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260312T070000Z",
+        "domain": "bbc.com",
+        "title": "Europe on alert for Russian election interference campaigns",
+        "country": "United Kingdom",
+        "language": "English",
+        "credibility_type": "state-affiliated",
+        "factuality": "unknown"
+      },
+      {
+        "date": "20260312T153000Z",
+        "domain": "news-front.info",
+        "title": "Brussels manufactures 'Russian threat' to justify internet censorship regime",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "euvsdisinfo-flagged",
+        "factuality": "low"
+      },
+      {
+        "date": "20260313T090000Z",
+        "domain": "politico.eu",
+        "title": "Inside the EU's war room against Russian election disinformation",
+        "country": "Belgium",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260313T180000Z",
+        "domain": "off-guardian.org",
+        "title": "EU 'disinformation' panic is the real threat to democracy",
+        "country": "United Kingdom",
+        "language": "English",
+        "credibility_type": "euvsdisinfo-flagged",
+        "factuality": "low"
+      },
+      {
+        "date": "20260314T110000Z",
+        "domain": "nytimes.com",
+        "title": "Russia deploys AI-generated content to sow discord before European elections",
+        "country": "United States",
+        "language": "English",
+        "credibility_type": "independent",
+        "factuality": "high"
+      },
+      {
+        "date": "20260315T083000Z",
+        "domain": "katehon.com",
+        "title": "Atlanticist elites use 'disinformation' pretext to silence European sovereignty movement",
+        "country": "Russia",
+        "language": "English",
+        "credibility_type": "euvsdisinfo-flagged",
+        "factuality": "low"
+      }
+    ],
+    "source_breakdown": {
+      "state-affiliated": 2,
+      "independent": 5,
+      "euvsdisinfo-flagged": 3
+    },
+    "mainstream_pickup": [
+      {"source": "lemonde.fr", "date": "20260310T140000Z", "type": "independent"},
+      {"source": "spiegel.de", "date": "20260311T103000Z", "type": "independent"},
+      {"source": "politico.eu", "date": "20260313T090000Z", "type": "independent"},
+      {"source": "nytimes.com", "date": "20260314T110000Z", "type": "independent"}
+    ],
+    "fringe_amplification": {
+      "count": 23,
+      "peak_date": "20260313T000000Z",
+      "peak_window_hours": 48,
+      "notable_amplifiers": ["news-front.info", "off-guardian.org", "katehon.com", "southfront.org", "strategic-culture.org"]
+    },
+    "ifcn_verdict": {
+      "checked": true,
+      "verdicts": [
+        {
+          "publisher": "EU DisinfoLab",
+          "rating": "Confirmed",
+          "title": "Pro-Kremlin disinformation campaign targeting EP elections documented",
+          "url": "https://disinfo.eu/publications/ep-elections-influence-ops-2026"
+        },
+        {
+          "publisher": "Correctiv",
+          "rating": "True",
+          "title": "Russische Desinformationskampagne vor Europawahl nachgewiesen",
+          "url": "https://correctiv.org/faktencheck/russland-europawahl-2026"
+        }
+      ]
+    },
+    "grounding_score": 0.78,
+    "grounding_label": "well-grounded",
+    "grounding_reason": "5/10 high-credibility independent sources corroborate the claim across 3 languages. Two IFCN-affiliated fact-checkers confirmed the campaign. 3 EUvsDisinfo-flagged outlets produced counter-narratives denying the campaign, which is itself consistent with the claim.",
+    "synthesis": "EUvsDisinfo first documented this campaign on March 10, and it was independently corroborated within 4 days by Le Monde, Der Spiegel, Politico, and the New York Times across French, German, and English. The response from Russian state media (RT) and EUvsDisinfo-flagged outlets (News-Front, Off-Guardian, Katehon) followed a consistent counter-narrative framing EU disinformation warnings as censorship - a pattern that two IFCN fact-checkers (EU DisinfoLab, Correctiv) noted as itself part of the documented campaign. The cross-lingual corroboration and institutional confirmation make this one of the best-grounded claims in recent European disinformation tracking.",
+    "article_count": 10
+  }
+]

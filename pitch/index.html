@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pnyx — Listening Infrastructure for Public Discourse</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<style>
+  :root {
+    --pnyx-primary: #3E2C20;
+    --pnyx-primary-deep: #2E1F15;
+    --pnyx-primary-mid: #6B5442;
+    --pnyx-primary-light: #8B7355;
+    --pnyx-surface: #F8F4F0;
+    --pnyx-attention: #7C5E10;
+    --pnyx-attention-light: #FFFBEB;
+    --pnyx-border: rgba(0,0,0,0.08);
+    --grain-opacity: 0.025;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .reveal-viewport {
+    background: var(--pnyx-surface);
+  }
+
+  .reveal {
+    font-family: 'Sora', sans-serif;
+    font-weight: 400;
+    color: var(--pnyx-primary);
+  }
+
+  .reveal .slides { text-align: left; }
+
+  /* Section layout - force flexbox centering over reveal.js */
+  .reveal .slides section {
+    background: var(--pnyx-surface);
+    padding: 0 120px 0 10% !important;
+    height: 100% !important;
+    top: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  /* Grain overlay */
+  .reveal .slides section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity);
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: multiply;
+  }
+  .reveal .slides section > * { position: relative; z-index: 1; }
+
+  /* Headings */
+  .reveal h1, .reveal h2, .reveal h3 {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    color: var(--pnyx-primary);
+    text-transform: none;
+    text-shadow: none;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+    margin: 0 0 16px 0;
+    padding: 0;
+  }
+
+  .reveal h2 { font-size: 60px; }
+  .reveal h3 { font-size: 44px; font-weight: 600; }
+
+  /* Body text */
+  .reveal p {
+    color: var(--pnyx-primary-mid);
+    font-size: 34px;
+    line-height: 1.55;
+    max-width: 70%;
+    margin-top: 20px;
+  }
+
+  /* Quote / hook text */
+  .reveal .quote {
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--pnyx-primary);
+    line-height: 1.3;
+    max-width: 18ch;
+  }
+
+  /* Big stat */
+  .reveal .big-stat {
+    font-size: 180px;
+    font-weight: 800;
+    color: var(--pnyx-primary);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reveal .stat-caption {
+    font-size: 36px;
+    color: var(--pnyx-primary-mid);
+    max-width: 28ch;
+    margin-top: 12px;
+  }
+
+  .reveal .sub {
+    font-size: 24px;
+    color: var(--pnyx-primary-light);
+    font-weight: 400;
+    margin-top: 28px;
+  }
+
+  /* Source citations */
+  .reveal .source {
+    font-size: 20px;
+    color: var(--pnyx-primary-light);
+    opacity: 0.6;
+    margin-top: 32px;
+  }
+
+  /* Wordmark / brand */
+  .reveal .wordmark {
+    font-size: 120px;
+    font-weight: 800;
+    color: var(--pnyx-primary);
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .reveal .tagline {
+    font-size: 36px;
+    color: var(--pnyx-primary-mid);
+    font-weight: 400;
+    margin-top: 16px;
+  }
+
+  /* Reframe slide */
+  .reveal .reframe {
+    font-size: 60px;
+    font-weight: 600;
+    color: var(--pnyx-primary);
+    line-height: 1.3;
+    max-width: 22ch;
+  }
+
+  /* Layer list */
+  .reveal .layers {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+  }
+
+  .reveal .layers li {
+    font-size: 34px;
+    line-height: 1.5;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--pnyx-border);
+    color: var(--pnyx-primary-mid);
+  }
+
+  .reveal .layers li:last-child {
+    border-bottom: none;
+  }
+
+  .reveal .layers .layer-name {
+    font-weight: 700;
+    color: var(--pnyx-primary);
+    display: inline-block;
+    width: 180px;
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Demo slide */
+  .reveal .demo-container {
+    background: var(--pnyx-primary-deep);
+    border-radius: 8px;
+    width: 85%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .reveal .demo-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .reveal .demo-placeholder {
+    color: var(--pnyx-primary-light);
+    font-size: 28px;
+    text-align: center;
+  }
+
+  .reveal .demo-placeholder span {
+    display: block;
+    font-size: 20px;
+    margin-top: 12px;
+    color: var(--pnyx-primary-light);
+    opacity: 0.6;
+  }
+
+  /* Model detail slides */
+  .reveal .model-question {
+    font-size: 40px;
+    font-weight: 500;
+    color: var(--pnyx-primary-mid);
+    font-style: italic;
+    margin-top: 4px;
+    max-width: none;
+  }
+
+  .reveal .model-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin-top: 32px;
+    max-width: calc(100% - 40px);
+  }
+
+  .reveal .model-block {
+    padding: 0;
+  }
+
+  .reveal .detail-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--pnyx-primary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--pnyx-primary);
+    display: inline-block;
+  }
+
+  .reveal .model-block p {
+    font-size: 26px;
+    color: var(--pnyx-primary-mid);
+    max-width: none;
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .reveal .model-block p strong {
+    color: var(--pnyx-primary);
+    font-weight: 600;
+  }
+
+  .reveal .model-block p em {
+    font-style: italic;
+  }
+
+  /* Close line */
+  .reveal .close-line {
+    font-size: 48px;
+    font-weight: 600;
+    color: var(--pnyx-primary);
+    line-height: 1.35;
+    margin-top: 24px;
+  }
+
+  /* Sovereignty stats */
+  .reveal .arch-stats {
+    display: flex;
+    gap: 90px;
+    margin-top: 40px;
+  }
+
+  .reveal .arch-stat {
+    text-align: left;
+  }
+
+  .reveal .arch-stat .value {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--pnyx-primary);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reveal .arch-stat .label {
+    font-size: 22px;
+    color: var(--pnyx-primary-light);
+    margin-top: 8px;
+  }
+
+  /* Close slide URL */
+  .reveal .url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: var(--pnyx-primary-light);
+    margin-top: 48px;
+    font-weight: 400;
+  }
+
+  /* Slide number */
+  .reveal .slide-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--pnyx-primary-light);
+    opacity: 0.4;
+    bottom: 20px;
+    right: 32px;
+  }
+
+  .reveal .speaker-notes-indicator { display: none; }
+
+  /* Attention color for PAUSE */
+  .reveal .attention {
+    color: var(--pnyx-attention);
+  }
+
+  /* Monospace - only for code/data contexts */
+  .reveal code, .reveal .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+  /* Commitments */
+  .reveal .commitments {
+    margin-top: 32px;
+  }
+
+  .reveal .commitment {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--pnyx-border);
+  }
+
+  .reveal .commitment:first-child {
+    border-top: 1px solid var(--pnyx-border);
+  }
+
+  .reveal .commitment-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--pnyx-primary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .reveal .commitment-text {
+    font-size: 36px;
+    color: var(--pnyx-primary-mid);
+    line-height: 1.4;
+    max-width: 24ch;
+  }
+
+  /* Centered variant */
+  .reveal .slides > section.slide-centered {
+    align-items: center !important;
+    text-align: center !important;
+    padding: 80px 10% !important;
+  }
+
+  .reveal .slides > section.slide-centered p,
+  .reveal .slides > section.slide-centered .quote,
+  .reveal .slides > section.slide-centered .reframe {
+    max-width: none !important;
+  }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+  <!-- SLIDE 1: Arendt Hook -->
+  <section>
+    <p class="quote">"Appearance constitutes reality."</p>
+    <p class="sub">Hannah Arendt, The Human Condition</p>
+    <p class="reframe" style="margin-top:48px; font-size:44px">So let's make it visible.</p>
+    <aside class="notes"><ul>
+<li>[0:00-0:15]</li>
+<li>Appearance constitutes reality - the public realm is where things become real</li>
+<li>Online: reading leaves no trace, listening has no form</li>
+<li>71% of comments receive zero deliberative replies (Esau 2025)</li>
+<li>Not because nobody read them - because reading is invisible</li>
+<li>Erscheinungsraum became a space of disappearance</li>
+<li>"So let's make it visible"</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 2: Pnyx -->
+  <section class="slide-centered">
+    <p class="wordmark">Pnyx</p>
+    <p class="tagline">Listening infrastructure for public discourse.</p>
+    <aside class="notes"><ul>
+<li>[0:15-0:25]</li>
+<li>Named after the hill where Athenians assembled to speak AND listen</li>
+<li>Browser extension - lives inside LinkedIn and X, not a separate platform</li>
+<li>Two custom-trained models, both entirely in-browser</li>
+<li>Models are the enabler, not the product</li>
+<li>Product = behavioral shift from performative reaction to visible listening</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 3: Three Commitments -->
+  <section>
+    <h3>Three commitments</h3>
+    <div class="commitments">
+      <div class="commitment">
+        <div class="commitment-name">Sovereignty</div>
+        <div class="commitment-text">Democratic infrastructure that depends on nobody's permission.</div>
+      </div>
+      <div class="commitment">
+        <div class="commitment-name">Agonism</div>
+        <div class="commitment-text">The other position has a right to exist.</div>
+      </div>
+      <div class="commitment">
+        <div class="commitment-name">Discourse</div>
+        <div class="commitment-text">The structure of public speech should be legible to everyone.</div>
+      </div>
+    </div>
+    <aside class="notes"><ul>
+<li>[0:25-0:40]</li>
+<li>Sovereignty: no server, no API, no terms of service. Zero bytes leave browser</li>
+<li>Agonism (Mouffe): other position has right to exist. No consensus engineering</li>
+<li>Discourse (Habermas): structure of speech should be legible. Not judged - legible</li>
+<li>Not slogans - these determined the architecture</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 4: Four Layers -->
+  <section>
+    <h3>Four layers</h3>
+    <ul class="layers">
+      <li><span class="layer-name">DETECT</span> Is there a real person behind this text?</li>
+      <li><span class="layer-name">SEE</span> What claims are being made, and are they grounded?</li>
+      <li><span class="layer-name attention">PAUSE</span> Which claim are you responding to?</li>
+      <li><span class="layer-name">EXPLORE</span> Three rounds of structured disagreement</li>
+    </ul>
+    <aside class="notes"><ul>
+<li>[0:40-1:00]</li>
+<li>DETECT = Arendt: Erscheinungsraum requires a who</li>
+<li>SEE = Habermas: validity claims made operational</li>
+<li>PAUSE = friction design: 3s between impulse and reaction. Twitter read-before-RT: 40% behavior change</li>
+<li>EXPLORE = Mouffe: disagreement is not failure of deliberation, it IS deliberation</li>
+<li>Each layer maps to a theorist. Each theorist maps to a feature</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 5: Erscheinung Model -->
+  <section>
+    <h3>The Erscheinung Model</h3>
+    <p class="model-question">Who is speaking?</p>
+    <div class="model-detail">
+      <div class="model-block">
+        <div class="detail-label">Theory</div>
+        <p>Arendt: the Erscheinungsraum requires a <em>who</em> behind the <em>what</em>. AI-generated text has no who. So we detect the absence.</p>
+      </div>
+      <div class="model-block">
+        <div class="detail-label">Therefore</div>
+        <p>Fine-tuned DeBERTa + 85 heuristic signals. Sub-millisecond. On-device via ONNX. When there's no who, the content fades &mdash; not blocks.</p>
+      </div>
+    </div>
+    <aside class="notes"><ul>
+<li>[1:00-1:15]</li>
+<li>Erscheinungsraum: requires a WHO behind the WHAT</li>
+<li>AI text simulates speech without a speaker - discloses what, never who</li>
+<li>Two tiers: 85 heuristic patterns (PNAS Biber, PubMed vocab, Pangram DAMAGE paper) + fine-tuned DeBERTa</li>
+<li>8 hand-crafted features: TTR, hapax rate, sentence variance, bigram uniqueness, contractions...</li>
+<li>Sub-millisecond heuristics, on-device via ONNX</li>
+<li>Fades, not blocks. Fog on glass, not a wall. Click to reveal</li>
+<li>Presence matters. Absence should be visible, not censored</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 6: Habermas Model -->
+  <section>
+    <h3>The Habermas Model</h3>
+    <p class="model-question">What is being said?</p>
+    <div class="model-detail">
+      <div class="model-block">
+        <div class="detail-label">Theory</div>
+        <p>Habermas: every speech act raises validity claims. <strong>Wahrheit</strong> &mdash; is a truth claim being made? <strong>Richtigkeit</strong> &mdash; is there argument structure? We built a head for each.</p>
+      </div>
+      <div class="model-block">
+        <div class="detail-label">Therefore</div>
+        <p>Two binary classification heads on DeBERTa-v3-small. One head per validity dimension. 10K samples. F1 0.974. ONNX, on-device, sub-second.</p>
+      </div>
+    </div>
+    <aside class="notes"><ul>
+<li>[1:15-1:30]</li>
+<li>Habermas: 3 validity claims - Wahrheit (truth), Richtigkeit (rightness), Wahrhaftigkeit (sincerity)</li>
+<li>We operationalize the first two. One binary head each. One forward pass</li>
+<li>DeBERTa-v3-small, fine-tuned from NLI checkpoint (already understands entailment)</li>
+<li>12,500 training samples, balanced across all 4 label cells</li>
+<li>F1 0.974. Focal loss + label smoothing to reduce overconfidence</li>
+<li>271 MB FP16 ONNX, sub-second in-browser via Web Worker</li>
+<li>Theory gave us two validity dimensions. We built exactly two heads</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 7: Explore / Mouffe -->
+  <section>
+    <h3>Explore Mode</h3>
+    <p class="model-question">How should we disagree?</p>
+    <div class="model-detail">
+      <div class="model-block">
+        <div class="detail-label">Theory</div>
+        <p>Mouffe: consensus is not always the goal. Disagreement is a democratic resource. Transform antagonism into agonism.</p>
+      </div>
+      <div class="model-block">
+        <div class="detail-label">Therefore</div>
+        <p>Three rounds on any claim. Three moves: stance, concession, escalation. No move is ranked above another.</p>
+      </div>
+    </div>
+    <aside class="notes"><ul>
+<li>[1:30-1:45]</li>
+<li>Mouffe: transform antagonism (enemy) into agonism (adversary)</li>
+<li>Explore on any claim. 3 rounds, 3 moves per round</li>
+<li>Stance: deepens position - what else does this commit you to?</li>
+<li>Concession: agonistic move - acknowledge other side has ground. Should cost something</li>
+<li>Escalation: follow logic further than comfort allows</li>
+<li>No move ranked above another</li>
+<li>System prompts encode all 3 theorists. Each round shifts validity dimensions</li>
+<li>Theory as code</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 8: Demo -->
+  <section class="slide-centered">
+    <div class="demo-container">
+      <video src="demo-recording.mp4" data-autoplay muted playsinline controls></video>
+    </div>
+    <aside class="notes"><ul>
+<li>[1:45-2:45] VIDEO DEMO</li>
+<li>Real LinkedIn flash: "Pnyx running live"</li>
+<li>Demo page: two models loading in-browser</li>
+<li>Badges: Wahrheit 84%, Richtigkeit 22% - high claims, no argument. Expand claims</li>
+<li>Comment -> PAUSE: "which claim?" Not a gate - orientation moment. Reaction -> response</li>
+<li>Replies: Jonas tagged claim. Niko skipped. "Listening has a trace." 1/2 engaged</li>
+<li>Blurred post: Erscheinung, no who. Fades, not blocks</li>
+<li>Network tab: zero outgoing requests. Digital sovereignty</li>
+<li>Explore: stance/concession/escalation. Dimensions shift. No move is better</li>
+</ul></aside>
+  </section>
+
+  <!-- SLIDE 9: Close -->
+  <section class="slide-centered">
+    <p class="wordmark">Pnyx</p>
+    <p class="close-line">You own your data.<br>You own your infrastructure.<br>Rejoin the discourse.</p>
+    <p class="url"><!-- deploy URL goes here --></p>
+    <aside class="notes"><ul>
+<li>[2:45-3:00]</li>
+<li>Zero bytes leave browser. Two custom models, 457 MB ONNX, on your device</li>
+<li>No server to shut down, no API to revoke, no permission to ask</li>
+<li>If we disappeared tomorrow, Pnyx keeps working</li>
+<li>4 layers: Detect, See, Pause, Explore</li>
+<li>3 philosophers: Habermas (validity), Arendt (presence), Mouffe (conflict)</li>
+<li>First tool combining Habermasian legibility + Arendtian authenticity + agonistic awareness, on-device</li>
+<li>"Rejoin the discourse."</li>
+</ul></aside>
+  </section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: true,
+  controls: false,
+  progress: false,
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  width: 1920,
+  height: 1080,
+  margin: 0,
+  center: false,
+  showNotes: false,
+  plugins: [RevealNotes],
+});
+</script>
+</body>
+</html>
