@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pnyx Demo</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    /* LinkedIn light mode */
+    --li-bg: #F4F2EE;
+    --li-surface: #FFFFFF;
+    --li-surface-raised: #F5F5F5;
+    --li-border: #E0DFDB;
+    --li-text: #191919;
+    --li-text-secondary: #666666;
+    --li-text-tertiary: #999999;
+    --li-hover: #F5F5F5;
+    --li-blue: #0A66C2;
+    --li-blue-bg: #0A66C2;
+    --li-green: #44712E;
+
+    /* Pnyx identity */
+    --pnyx-primary: #3E2C20;
+    --pnyx-primary-deep: #2E1F15;
+    --pnyx-primary-mid: #6B5442;
+    --pnyx-primary-light: #8B7355;
+    --pnyx-surface: #F8F4F0;
+    --pnyx-attention: #7C5E10;
+    --pnyx-attention-light: #FFFBEB;
+    --pnyx-border: rgba(0,0,0,0.08);
+    --pnyx-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+    /* Deliberation */
+    --pnyx-stance: #3E2C20;
+    --pnyx-stance-light: #F8F4F0;
+    --pnyx-stance-border: rgba(62,44,32,0.2);
+    --pnyx-concession: #7C5E10;
+    --pnyx-concession-light: #FFFBEB;
+    --pnyx-concession-border: rgba(124,94,16,0.2);
+    --pnyx-escalation: #4A5043;
+    --pnyx-escalation-light: #F0F4ED;
+    --pnyx-escalation-border: rgba(74,80,67,0.2);
+  }
+
+  body {
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--li-bg);
+    color: var(--li-text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.42;
+  }
+
+  /* ─── Loading ─── */
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(244,242,238,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000; transition: opacity 0.5s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loading-box {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 24px 32px; min-width: 320px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .loading-box h2 { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: var(--pnyx-primary); }
+  .loading-model { display: flex; flex-direction: column; gap: 4px; }
+  .loading-model .label { display: flex; justify-content: space-between; font-size: 12px; color: var(--li-text-secondary); }
+  .loading-model .label .status { font-weight: 500; }
+  .progress-bar { height: 3px; border-radius: 999px; background: var(--li-surface-raised); overflow: hidden; }
+  .progress-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--pnyx-primary); transition: width 0.4s ease; }
+  .loading-footer { font-size: 11px; color: var(--li-text-tertiary); text-align: center; }
+
+  /* ─── Nav ─── */
+  .li-nav {
+    background: var(--li-surface); border-bottom: 1px solid var(--li-border);
+    padding: 0 24px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .li-nav-inner {
+    width: 100%; max-width: 1128px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .li-logo { display: flex; align-items: center; text-decoration: none; }
+  .li-logo svg { width: 34px; height: 34px; fill: var(--li-blue); }
+  .li-search {
+    flex: 0 1 280px; height: 34px; border-radius: 4px; border: none;
+    background: var(--li-surface-raised); padding: 0 12px 0 36px;
+    font: inherit; font-size: 13px; color: var(--li-text);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='rgba(255,255,255,0.6)' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 10-1.397 1.398h-.001l3.85 3.85a1 1 0 001.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 110-10 5 5 0 010 10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 12px center;
+  }
+  .li-search::placeholder { color: var(--li-text-secondary); }
+  .li-nav-links {
+    display: flex; align-items: center; gap: 0; margin-left: auto;
+  }
+  .li-nav-link {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 0 12px; height: 52px; justify-content: center;
+    font-size: 11px; color: var(--li-text-secondary);
+    text-decoration: none; border-bottom: 2px solid transparent;
+    min-width: 60px; transition: color 0.15s;
+  }
+  .li-nav-link:hover { color: var(--li-text); }
+  .li-nav-link.active { color: var(--li-text); border-bottom-color: var(--li-text); }
+  .li-nav-link svg { width: 24px; height: 24px; fill: currentColor; }
+  .li-nav-sep {
+    width: 1px; height: 40px; background: var(--li-border); margin: 0 4px; flex-shrink: 0;
+  }
+  .li-nav-extra {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 0 12px; height: 52px; justify-content: center;
+    font-size: 11px; color: var(--li-text-secondary); text-decoration: none;
+  }
+  .li-nav-badge {
+    display: flex; align-items: center; gap: 4px;
+    font-family: 'Sora', sans-serif;
+    font-size: 10px; font-weight: 600; color: var(--pnyx-primary);
+    background: var(--pnyx-surface); padding: 3px 8px; border-radius: 10px;
+    margin-left: 4px; border: 1px solid var(--pnyx-stance-border);
+  }
+  .li-nav-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--pnyx-primary); }
+
+  /* ─── Layout ─── */
+  .li-shell {
+    width: 100%; max-width: 1128px; margin: 0 auto; padding: 24px 0;
+    display: grid; grid-template-columns: 225px minmax(0, 1fr) 300px;
+    gap: 24px; align-items: start;
+  }
+
+  /* ─── Left sidebar ─── */
+  .li-sidebar { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 8px; }
+  .li-card {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .li-profile-card { text-align: center; }
+  .li-profile-banner {
+    height: 56px;
+    background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+  }
+  .li-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 3px solid var(--li-surface); margin: -36px auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 600; color: white;
+    background: linear-gradient(135deg, #0a66c2, #004182);
+  }
+  .li-profile-name {
+    font-size: 16px; font-weight: 600; padding: 0 16px;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .li-profile-title { font-size: 12px; color: var(--li-text-secondary); padding: 2px 16px 12px; }
+  .li-profile-stats { padding: 12px 16px; border-top: 1px solid var(--li-border); }
+  .li-profile-stat {
+    display: flex; justify-content: space-between; padding: 3px 0;
+    font-size: 12px; color: var(--li-text-secondary); cursor: pointer;
+  }
+  .li-profile-stat:hover { color: var(--li-text); }
+  .li-profile-stat .val { font-weight: 600; color: var(--li-blue); }
+  .li-sidebar-links {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .li-sidebar-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; font-size: 12px; color: var(--li-text-secondary);
+    text-decoration: none; font-weight: 500;
+  }
+  .li-sidebar-link:hover { color: var(--li-text); }
+  .li-sidebar-link svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+  /* ─── Feed ─── */
+  .li-feed { display: flex; flex-direction: column; gap: 8px; }
+  .li-feed-sort {
+    display: flex; align-items: center; gap: 8px; padding: 8px 0;
+    font-size: 12px; color: var(--li-text-secondary);
+  }
+  .li-feed-sort::before {
+    content: ''; flex: 1; height: 1px; background: var(--li-border);
+  }
+  .li-feed-sort span { white-space: nowrap; }
+
+  /* Start a post */
+  .li-start-post {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .li-start-row { display: flex; align-items: center; gap: 8px; }
+  .li-start-avatar {
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 0.95rem; color: white;
+    background: linear-gradient(135deg, #0a66c2, #004182);
+  }
+  .li-start-input {
+    flex: 1; height: 48px; border-radius: 24px; border: 1px solid var(--li-border);
+    padding: 0 16px; font: inherit; font-size: 14px; color: var(--li-text-secondary);
+    background: none; cursor: pointer;
+  }
+  .li-start-input:hover { background: var(--li-hover); }
+  .li-start-actions { display: flex; justify-content: space-around; padding-top: 4px; }
+  .li-start-action {
+    display: flex; align-items: center; gap: 6px; padding: 10px 8px;
+    font-size: 13px; font-weight: 600; color: var(--li-text-secondary);
+    background: none; border: none; cursor: pointer; border-radius: 4px; font-family: inherit;
+  }
+  .li-start-action:hover { background: var(--li-hover); }
+  .li-start-action svg { width: 20px; height: 20px; }
+
+  /* ─── Post ─── */
+  .li-post {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .li-post[data-risk="high"] { border-left: 3px solid var(--pnyx-primary); }
+  .li-post-suggested {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 16px 0; font-size: 12px; color: var(--li-text-tertiary);
+  }
+  .li-post-suggested button {
+    background: none; border: none; color: var(--li-text-tertiary);
+    cursor: pointer; font-size: 16px; padding: 4px;
+  }
+  .li-post-body { padding: 12px 16px 0; }
+  .li-post-header { display: flex; gap: 8px; margin-bottom: 8px; }
+  .li-post-avatar {
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 1rem; color: white;
+  }
+  .li-post-meta { flex: 1; min-width: 0; }
+  .li-post-author { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .li-post-author-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .li-post-degree { font-size: 12px; color: var(--li-text-secondary); font-weight: 400; }
+  .li-post-follow {
+    font-size: 14px; font-weight: 600; color: var(--li-blue);
+    background: none; border: none; cursor: pointer; font-family: inherit; padding: 0;
+  }
+  .li-post-follow:hover { text-decoration: underline; }
+  .li-post-headline { font-size: 12px; color: var(--li-text-secondary); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .li-post-time { font-size: 12px; color: var(--li-text-secondary); display: flex; align-items: center; gap: 4px; }
+  .li-post-time svg { fill: currentColor; }
+  .li-post-text { font-size: 14px; line-height: 1.5; padding-bottom: 12px; }
+
+  /* Engagement counts */
+  .li-engagement {
+    display: flex; justify-content: space-between; padding: 8px 16px;
+    font-size: 12px; color: var(--li-text-secondary);
+  }
+  .li-engagement-left { display: flex; align-items: center; gap: 4px; }
+
+  /* Reactions bar */
+  .li-post-reactions {
+    display: flex; justify-content: space-around; padding: 4px 8px;
+    border-top: 1px solid var(--li-border);
+  }
+  .li-reaction-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 8px; font-size: 13px; color: var(--li-text-secondary);
+    font-weight: 600; background: none; border: none;
+    cursor: pointer; border-radius: 4px; font-family: inherit;
+    flex: 1; justify-content: center;
+  }
+  .li-reaction-btn:hover { background: var(--li-hover); color: var(--li-text); }
+  .li-reaction-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; pointer-events: none; }
+
+  /* ─── Pnyx badge row ─── */
+  .pnyx-badge-row {
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    padding: 6px 16px; border-top: 1px solid var(--li-border);
+    font-size: 11px; color: var(--li-text-secondary); cursor: pointer;
+    font-family: 'Sora', sans-serif;
+  }
+  .pnyx-badge-row:hover { background: var(--li-hover); }
+  .pnyx-tag {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 6px; border-radius: 3px;
+    font-weight: 500; font-size: 10px; line-height: 1.3;
+    background: var(--pnyx-surface); color: var(--pnyx-primary);
+    border: 1px solid var(--pnyx-stance-border);
+  }
+  .pnyx-dot { color: var(--li-text-tertiary); }
+
+  /* Claims expansion */
+  .pnyx-claims-expanded {
+    display: none; padding: 8px 16px 10px;
+    font-size: 12px; color: var(--li-text-secondary); line-height: 1.5;
+    border-top: 1px dashed var(--li-border);
+    font-family: 'Sora', sans-serif;
+  }
+  .pnyx-claims-expanded.open { display: block; }
+  .pnyx-claims-expanded ul { margin: 4px 0 4px 16px; padding: 0; }
+  .pnyx-claims-expanded li { margin-bottom: 4px; }
+  .pnyx-claim-risk {
+    font-size: 10px; font-weight: 500; padding: 1px 5px;
+    border-radius: 3px; margin-left: 4px;
+    background: var(--pnyx-surface); color: var(--pnyx-primary);
+  }
+  .pnyx-explore-link {
+    font-size: 10px; color: var(--pnyx-attention);
+    text-decoration: none; margin-left: 6px; font-weight: 600; cursor: pointer;
+  }
+  .pnyx-explore-link:hover { text-decoration: underline; }
+
+  /* Explanation + CTA */
+  .pnyx-explain {
+    padding: 2px 16px 4px; font-size: 11px; color: var(--li-text-tertiary);
+    line-height: 1.3; font-style: italic; font-family: 'Sora', sans-serif;
+  }
+  .pnyx-cta {
+    display: inline-block; margin: 0 16px 6px;
+    padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 500; font-family: 'Sora', sans-serif;
+    background: var(--pnyx-surface); color: var(--pnyx-primary);
+    border: 1px solid var(--pnyx-stance-border);
+  }
+
+  /* ─── PAUSE overlay ─── */
+  .pnyx-pause-overlay {
+    background: var(--pnyx-attention-light); padding: 8px 16px 12px;
+    border-top: 1px solid var(--li-border);
+    animation: pauseSlideDown 200ms ease-out;
+    font-family: 'Sora', sans-serif;
+  }
+  @keyframes pauseSlideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .pnyx-pause-card {
+    background: var(--li-surface); border: 1px solid var(--pnyx-concession-border);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .pnyx-pause-header { font-size: 14px; font-weight: 600; color: var(--pnyx-attention); margin-bottom: 2px; }
+  .pnyx-pause-subtitle { font-size: 12px; color: var(--li-text-secondary); margin-bottom: 8px; }
+  .pnyx-pause-claims { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .pnyx-pause-claim {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 13px; color: var(--li-text); cursor: pointer;
+    padding: 4px 6px; border-radius: 4px;
+  }
+  .pnyx-pause-claim:hover { background: var(--li-hover); }
+  .pnyx-pause-claim input[type="checkbox"] { margin-top: 3px; accent-color: var(--pnyx-primary); }
+  .pnyx-pause-prompt { font-size: 12px; color: var(--li-text-secondary); font-style: italic; margin-bottom: 8px; }
+  .pnyx-pause-actions { display: flex; align-items: center; gap: 12px; }
+  .pnyx-pause-continue {
+    border: none; border-radius: 20px; background: var(--pnyx-attention); color: #000;
+    font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 6px 16px; cursor: pointer;
+  }
+  .pnyx-pause-continue:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pnyx-pause-continue:not(:disabled):hover { filter: brightness(1.1); }
+  .pnyx-pause-skip { font-size: 12px; color: var(--li-text-tertiary); text-decoration: none; cursor: pointer; }
+
+  /* Reply area */
+  .pnyx-reply-area {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-top: none; border-radius: 0 0 8px 8px;
+    padding: 10px 16px 12px; margin-top: -8px;
+  }
+  .pnyx-reply-textarea {
+    width: 100%; min-height: 56px; border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 13px;
+    resize: vertical; background: var(--li-surface-raised); color: var(--li-text);
+  }
+  .pnyx-reply-textarea:focus { outline: 1px solid var(--pnyx-primary); border-color: var(--pnyx-primary); }
+  .pnyx-reply-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .pnyx-reply-submit {
+    border: none; border-radius: 20px; background: var(--li-blue-bg); color: white;
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 5px 14px; cursor: pointer; margin-left: auto;
+  }
+
+  /* Reply tags */
+  .pnyx-reply-tag {
+    display: inline-block; font-size: 10px; color: var(--pnyx-primary);
+    background: var(--pnyx-surface); border-left: 2px solid var(--pnyx-primary);
+    padding: 2px 8px; margin-bottom: 4px; border-radius: 0 4px 4px 0;
+    font-family: 'Sora', sans-serif;
+  }
+  .pnyx-reply-tag.skipped { border-left-color: var(--li-text-tertiary); color: var(--li-text-tertiary); }
+
+  /* Pre-scripted replies */
+  .pnyx-reply { padding: 10px 16px 10px 24px; border-top: 1px solid var(--li-border); }
+  .pnyx-reply-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .pnyx-reply-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 600; color: white;
+  }
+  .pnyx-reply-author { font-size: 12px; font-weight: 600; }
+  .pnyx-reply-text { font-size: 13px; line-height: 1.45; color: var(--li-text); margin-top: 2px; }
+  .pnyx-listening-indicator {
+    padding: 4px 16px 6px; font-size: 11px;
+    color: var(--pnyx-primary); font-weight: 500;
+    border-top: 1px dotted var(--li-border);
+    font-family: 'Sora', sans-serif;
+  }
+
+  /* AI blur (Erscheinung) */
+  .li-post.ai-blurred .li-post-text {
+    filter: blur(4px); user-select: none; transition: filter 0.3s;
+    cursor: pointer; position: relative;
+  }
+  .li-post.ai-blurred .li-post-text:hover { filter: blur(2px); }
+  .li-post.ai-blurred .li-post-text::after {
+    content: 'Erscheinung \2014 no human presence detected';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: var(--pnyx-attention);
+    font-family: 'Sora', sans-serif;
+    filter: none; background: rgba(29,34,38,0.75);
+    border-radius: 4px; cursor: pointer;
+  }
+  .li-post.ai-revealed .li-post-text { filter: none; cursor: default; }
+  .li-post.ai-revealed .li-post-text::after { display: none; }
+
+  /* ─── Right sidebar ─── */
+  .li-right { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 8px; }
+  .li-right-card {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .li-right-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .li-puzzle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; font-size: 13px;
+  }
+  .li-puzzle-row .name { display: flex; align-items: center; gap: 8px; }
+  .li-puzzle-icon { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .li-puzzle-row .arrow { color: var(--li-text-tertiary); }
+  .li-suggestion {
+    display: flex; align-items: center; gap: 8px; padding: 8px 0;
+    border-top: 1px solid var(--li-border);
+  }
+  .li-suggestion:first-of-type { border-top: none; }
+  .li-suggestion-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .li-suggestion-info { flex: 1; min-width: 0; }
+  .li-suggestion-name { font-size: 14px; font-weight: 600; }
+  .li-suggestion-desc { font-size: 12px; color: var(--li-text-secondary); }
+  .li-follow-btn {
+    border: 1px solid var(--li-text-secondary); border-radius: 16px;
+    padding: 4px 16px; font-size: 14px; font-weight: 600;
+    color: var(--li-text-secondary); background: none; cursor: pointer; font-family: inherit;
+    white-space: nowrap;
+  }
+  .li-follow-btn:hover { border-color: var(--li-text); color: var(--li-text); background: var(--li-hover); }
+  .li-show-more {
+    display: block; font-size: 13px; color: var(--li-text-secondary);
+    text-decoration: none; padding: 4px 0; font-weight: 500;
+  }
+  .li-promo-card {
+    background: linear-gradient(135deg, #0a66c2, #004182); color: white;
+    border: none; border-radius: 8px; padding: 16px;
+  }
+  .li-promo-card .sub { font-size: 12px; opacity: 0.8; }
+  .li-promo-card .title { font-size: 16px; font-weight: 600; margin-top: 4px; }
+
+  /* Pnyx panel */
+  .pnyx-panel {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 16px;
+    font-family: 'Sora', sans-serif;
+  }
+  .pnyx-panel h3 {
+    font-size: 14px; font-weight: 700; color: var(--pnyx-primary);
+    display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  }
+  .pnyx-panel h3 .pnyx-icon {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--pnyx-primary); display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--pnyx-surface); font-weight: 800;
+  }
+  .pnyx-panel .subtitle { font-size: 12px; color: var(--li-text-secondary); line-height: 1.4; margin-bottom: 10px; }
+  .pnyx-panel textarea {
+    width: 100%; min-height: 80px; resize: vertical;
+    border-radius: 8px; border: 1px solid var(--li-border);
+    background: var(--li-surface-raised); color: var(--li-text);
+    padding: 10px; font: inherit; font-size: 13px; line-height: 1.4;
+  }
+  .pnyx-panel textarea:focus { outline: 1px solid var(--pnyx-primary); border-color: var(--pnyx-primary); }
+  .pnyx-panel button.pnyx-analyze-btn {
+    width: 100%; margin-top: 8px;
+    border: none; border-radius: 20px;
+    background: var(--pnyx-primary); color: white;
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 8px 16px; cursor: pointer;
+  }
+  .pnyx-panel button.pnyx-analyze-btn:hover { background: var(--pnyx-primary-deep); }
+  .pnyx-panel-divider { height: 1px; background: var(--li-border); margin: 12px 0; }
+  .pnyx-panel-stats { display: flex; flex-direction: column; gap: 6px; }
+  .pnyx-panel-stat {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--li-text-secondary);
+  }
+  .pnyx-panel-stat .val { font-weight: 600; color: var(--pnyx-primary); }
+  .pnyx-panel-terms {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+  }
+  .pnyx-panel-term {
+    font-size: 11px; color: var(--pnyx-primary-mid);
+    text-decoration: none; border-bottom: 1px dotted var(--pnyx-primary-mid);
+    cursor: pointer;
+  }
+  .pnyx-panel-term:hover { color: var(--pnyx-primary); }
+
+  /* ─── Explore overlay ─── */
+  .explore-overlay {
+    position: fixed; inset: 0; background: var(--li-bg);
+    z-index: 1500; overflow-y: auto; display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .explore-overlay.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .explore-header {
+    background: var(--li-surface); border-bottom: 1px solid var(--li-border);
+    padding: 12px 24px; position: sticky; top: 0; z-index: 101;
+  }
+  .explore-header-inner { max-width: 700px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+  .explore-logo { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--pnyx-primary); }
+  .explore-logo-sub { font-weight: 400; color: var(--pnyx-primary-mid); margin-left: 4px; }
+  .explore-back {
+    background: none; border: 1px solid var(--li-border);
+    border-radius: 16px; padding: 6px 16px; font-size: 13px;
+    color: var(--li-text-secondary); cursor: pointer; font-family: inherit;
+  }
+  .explore-back:hover { background: var(--li-hover); }
+  .explore-content { max-width: 700px; margin: 24px auto; padding: 0 24px; }
+  .explore-opening {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 12px; padding: 48px 32px; text-align: center;
+  }
+  .explore-opening-claim { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
+  .explore-opening-risk {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    padding: 2px 10px; border-radius: 10px; margin-bottom: 24px;
+    background: var(--pnyx-surface); color: var(--pnyx-primary);
+    border: 1px solid var(--pnyx-stance-border);
+  }
+  .explore-opening-desc { font-size: 14px; color: var(--li-text-secondary); margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .explore-begin-btn {
+    font-family: 'Sora', sans-serif;
+    background: var(--pnyx-primary); color: #FFFFFF; border: none;
+    border-radius: 20px; padding: 12px 32px; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+  }
+  .explore-begin-btn:hover { filter: brightness(1.1); }
+  .explore-begin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .explore-beat {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 24px; margin-bottom: 16px;
+    animation: slideUp 0.4s ease;
+  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes dotBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+  .explore-beat-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px; font-weight: 600; color: var(--li-text-tertiary);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .explore-beat-situation { font-size: 15px; line-height: 1.6; margin-bottom: 20px; }
+  .explore-options { display: flex; flex-direction: column; gap: 10px; }
+  .explore-option {
+    border: 1px solid var(--li-border); border-radius: 8px;
+    padding: 14px 16px; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: left; background: var(--li-surface);
+    font-family: inherit; font-size: 14px; line-height: 1.4; color: var(--li-text);
+  }
+  .explore-option:hover { background: var(--li-hover); }
+  .explore-option-type {
+    display: inline-block; font-family: 'Sora', sans-serif;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 1px 8px; border-radius: 8px; margin-bottom: 6px;
+  }
+  .explore-option-text { display: block; }
+  .option-stance { border-color: var(--pnyx-stance-border); }
+  .option-stance:hover { background: var(--pnyx-stance-light); }
+  .option-stance .explore-option-type { background: var(--pnyx-stance-light); color: var(--pnyx-stance); }
+  .option-concession { border-color: var(--pnyx-concession-border); }
+  .option-concession:hover { background: var(--pnyx-concession-light); }
+  .option-concession .explore-option-type { background: var(--pnyx-concession-light); color: var(--pnyx-concession); }
+  .option-escalation { border-color: var(--pnyx-escalation-border); }
+  .option-escalation:hover { background: var(--pnyx-escalation-light); }
+  .option-escalation .explore-option-type { background: var(--pnyx-escalation-light); color: var(--pnyx-escalation); }
+  .explore-option.chosen { opacity: 0.7; cursor: default; position: relative; }
+  .explore-option.chosen::after { content: 'Chosen'; position: absolute; top: 8px; right: 12px; font-size: 11px; font-weight: 600; color: var(--li-text-secondary); }
+  .explore-option.not-chosen { opacity: 0.3; cursor: default; pointer-events: none; }
+  .explore-summary {
+    background: var(--li-surface); border: 1px solid var(--li-border);
+    border-radius: 8px; padding: 32px; animation: slideUp 0.4s ease;
+  }
+  .explore-summary-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+  .explore-summary-claim { font-size: 15px; font-style: italic; color: var(--li-text-secondary); margin-bottom: 20px; padding: 12px 16px; background: var(--li-hover); border-radius: 6px; }
+  .explore-summary-section { margin-bottom: 20px; }
+  .explore-summary-section h3 { font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; color: var(--li-text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .explore-chain-entry { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 12px; background: var(--li-hover); border-radius: 6px; margin-bottom: 6px; }
+  .explore-chain-badge { font-family: 'Sora', sans-serif; font-size: 10px; font-weight: 600; text-transform: uppercase; padding: 1px 6px; border-radius: 6px; flex-shrink: 0; }
+  .badge-stance { background: var(--pnyx-stance-light); color: var(--pnyx-stance); }
+  .badge-concession { background: var(--pnyx-concession-light); color: var(--pnyx-concession); }
+  .badge-escalation { background: var(--pnyx-escalation-light); color: var(--pnyx-escalation); }
+
+  @media (max-width: 1100px) { .li-shell { grid-template-columns: minmax(0, 1fr) 300px; } .li-sidebar { display: none; } }
+  @media (max-width: 768px) { .li-shell { grid-template-columns: 1fr; padding: 12px; } .li-right { position: static; } }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOADING ═══ -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-box">
+    <h2>Pnyx</h2>
+    <div class="loading-model">
+      <div class="label"><span>Erscheinung</span><span class="status" id="load-ersch-status">loading</span></div>
+      <div class="progress-bar"><span id="load-ersch-bar" style="width:0%"></span></div>
+    </div>
+    <div class="loading-model">
+      <div class="label"><span>Habermas</span><span class="status" id="load-hab-status">loading</span></div>
+      <div class="progress-bar"><span id="load-hab-bar" style="width:0%"></span></div>
+    </div>
+    <div class="loading-footer">On-device inference &mdash; no data leaves your browser</div>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav class="li-nav">
+  <div class="li-nav-inner">
+    <a class="li-logo" href="#"><svg viewBox="0 0 24 24"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg></a>
+    <input class="li-search" type="text" placeholder="Search" disabled>
+    <div class="li-nav-links">
+      <a class="li-nav-link active" href="#"><svg viewBox="0 0 24 24"><path d="M23 9v2h-2v7a3 3 0 01-3 3h-4v-6h-4v6H6a3 3 0 01-3-3v-7H1V9l11-7z"/></svg>Home</a>
+      <a class="li-nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M12 16v6H3v-6a3 3 0 013-3h3a3 3 0 013 3zm5.5-3A3.5 3.5 0 1014 9.5a3.5 3.5 0 003.5 3.5zm1 2h-2a2.5 2.5 0 00-2.5 2.5V22h7v-4.5a2.5 2.5 0 00-2.5-2.5zM7.5 2A4.5 4.5 0 1012 6.5 4.49 4.49 0 007.5 2z"/></svg>My Network</a>
+      <a class="li-nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M17 6V5a3 3 0 00-3-3h-4a3 3 0 00-3 3v1H2v4a3 3 0 003 3h14a3 3 0 003-3V6zM9 5a1 1 0 011-1h4a1 1 0 011 1v1H9zm10 9a4 4 0 003-1.38V17a3 3 0 01-3 3H5a3 3 0 01-3-3v-4.38A4 4 0 005 14z"/></svg>Jobs</a>
+      <a class="li-nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M16 4H8a7 7 0 000 14h4v4l8-8a7 7 0 00-4-10z"/></svg>Messaging</a>
+      <a class="li-nav-link" href="#"><svg viewBox="0 0 24 24"><path d="M22 19h-8.28a2 2 0 11-3.44 0H2v-1a4.52 4.52 0 011.17-2.83l1-1.17h15.7l1 1.17A4.42 4.42 0 0122 18zM18.21 7.44A6.27 6.27 0 0012 2a6.27 6.27 0 00-6.21 5.44L5 13h14z"/></svg>Notifications</a>
+      <div class="li-nav-sep"></div>
+      <a class="li-nav-extra" href="#">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" style="width:24px;height:24px"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1"/><rect x="3" y="17" width="4" height="4" rx="1"/><rect x="10" y="17" width="4" height="4" rx="1"/><rect x="17" y="17" width="4" height="4" rx="1"/></svg>
+        For Business
+      </a>
+      <div class="li-nav-badge"><span class="dot"></span>Pnyx</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ LAYOUT ═══ -->
+<div class="li-shell">
+
+  <!-- Left sidebar -->
+  <aside class="li-sidebar">
+    <div class="li-card li-profile-card">
+      <div class="li-profile-banner"></div>
+      <div class="li-avatar">FG</div>
+      <div class="li-profile-name">Felix Guenthert <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--li-blue)"><path d="M8 0l2.5 2.5L14 2l-.5 3.5L16 8l-2.5 2.5L14 14l-3.5-.5L8 16l-2.5-2.5L2 14l.5-3.5L0 8l2.5-2.5L2 2l3.5.5z"/><path d="M6.5 10.5l-2-2 1-1L6.5 8.5l3-3 1 1z" fill="#1D2226"/></svg></div>
+      <div class="li-profile-title">agent alchemy &amp; applied semi-<br>otics analyst</div>
+      <div class="li-profile-stats">
+        <div class="li-profile-stat"><span>Profile viewers</span><span class="val">47</span></div>
+        <div class="li-profile-stat"><span>Post impressions</span><span class="val">312</span></div>
+      </div>
+    </div>
+    <div class="li-sidebar-links">
+      <a class="li-sidebar-link" href="#"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l6.59-6.59L20 9l-8 8z"/></svg>Saved items</a>
+      <a class="li-sidebar-link" href="#"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Groups</a>
+      <a class="li-sidebar-link" href="#"><svg viewBox="0 0 24 24"><path d="M19 4h-1V3a1 1 0 00-2 0v1H8V3a1 1 0 00-2 0v1H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"/></svg>Events</a>
+    </div>
+  </aside>
+
+  <!-- Feed -->
+  <main class="li-feed" id="feed">
+
+    <div class="li-start-post">
+      <div class="li-start-row">
+        <div class="li-start-avatar">FG</div>
+        <input class="li-start-input" type="text" placeholder="Start a post, try writing with AI" disabled>
+      </div>
+      <div class="li-start-actions">
+        <button class="li-start-action"><svg viewBox="0 0 24 24" fill="#E7A33E"><path d="M19 4H5a3 3 0 00-3 3v10a3 3 0 003 3h14a3 3 0 003-3V7a3 3 0 00-3-3zm-9 12V8l6 4z"/></svg>Video</button>
+        <button class="li-start-action"><svg viewBox="0 0 24 24" fill="#378FE9"><path d="M19 4H5a3 3 0 00-3 3v10a3 3 0 003 3h14a3 3 0 003-3V7a3 3 0 00-3-3zM5 18l3.5-4.5 2.5 3 3.5-4.5L19 18H5z"/><circle cx="8" cy="10" r="2"/></svg>Photo</button>
+        <button class="li-start-action"><svg viewBox="0 0 24 24" fill="#E06847"><path d="M19 4H5a3 3 0 00-3 3v10a3 3 0 003 3h14a3 3 0 003-3V7a3 3 0 00-3-3zM7 8h10v2H7zm0 4h7v2H7z"/></svg>Write article</button>
+      </div>
+    </div>
+
+    <div class="li-feed-sort"><span>Sort by: <strong>Most relevant</strong> &darr;</span></div>
+
+    <!-- POST 1 -->
+    <article class="li-post" data-risk="high" id="post-1">
+      <div class="li-post-suggested"><span>Suggested</span><button>&times;</button></div>
+      <div class="li-post-body">
+        <div class="li-post-header">
+          <div class="li-post-avatar" style="background:#c0392b">MH</div>
+          <div class="li-post-meta">
+            <div class="li-post-author"><span class="li-post-author-row">Mira Hahn <span class="li-post-degree">&middot; 2nd</span> <button class="li-post-follow">&middot; Follow</button></span></div>
+            <div class="li-post-headline">Public affairs correspondent</div>
+            <div class="li-post-time">2m &middot; <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 1110 0A5 5 0 013 8zm5.15-4h-1.3v4.3l3.73 2.15.65-1.1L8.15 7.5z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <p class="li-post-text">Officials are hiding the real numbers again. This proves the transit outage was deliberate. Share before the post disappears.</p>
+      </div>
+
+      <div class="pnyx-badge-row" id="badges-1">
+        <span class="pnyx-tag">Wahrheit: high 84%</span>
+        <span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">Richtigkeit: weak 22%</span>
+        <span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">2 claims</span>
+      </div>
+      <div class="pnyx-explain">Validity claims violated: unsupported truth claim without justification.</div>
+      <span class="pnyx-cta">Ask for evidence</span>
+      <div class="pnyx-claims-expanded" id="claims-1">
+        Claims detected:
+        <ul>
+          <li>"Officials are hiding the real numbers" <span class="pnyx-claim-risk">unsupported</span> <a class="pnyx-explore-link explore-trigger" data-claim="Officials are hiding the real numbers">Explore</a></li>
+          <li>"The transit outage was deliberate" <span class="pnyx-claim-risk">unsupported</span> <a class="pnyx-explore-link explore-trigger" data-claim="The transit outage was deliberate">Explore</a></li>
+        </ul>
+        Argument structure: assertion without evidence
+      </div>
+
+      <div id="pause-container-1"></div>
+
+      <div class="li-engagement">
+        <span class="li-engagement-left"><svg width="16" height="16" viewBox="0 0 24 24" fill="#378FE9"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2" fill="none" stroke="white" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="white"/><circle cx="15" cy="10" r="1.5" fill="white"/></svg> 23</span>
+        <span>2 comments</span>
+      </div>
+      <div class="li-post-reactions">
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 01-1.69-2.74l-.49-1.47A2.76 2.76 0 0010.76 1 2.75 2.75 0 008 3.74v1.12a9.19 9.19 0 00.46 2.85L8.89 9H4.12A2.12 2.12 0 002 11.12a2.16 2.16 0 00.92 1.76A2.11 2.11 0 002 14.62a2.14 2.14 0 001.28 2 2 2 0 00-.28 1 2.12 2.12 0 002 2.12v.14A2.12 2.12 0 007.12 22h7.49a8.08 8.08 0 003.58-.84l.31-.16H22V11z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Like</button>
+        <button class="li-reaction-btn" id="comment-btn-1" onclick="handleCommentClick(event)"><svg viewBox="0 0 24 24"><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 12c0 3.87 3.13 7 7 7h1l4 4v-4h1c3.87 0 7-3.13 7-7s-3.13-7-7-7H9c-3.87 0-7 3.13-7 7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Comment</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M13 4v2l4.39 4H4v2h13.39L13 16.39V19l8-7.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Repost</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L20 5l-8.58 12.08L15.64 24z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Send</button>
+      </div>
+
+      <div id="reply-area-1"></div>
+      <div class="pnyx-replies-section" id="replies-1">
+        <div class="pnyx-reply">
+          <div class="pnyx-reply-header"><div class="pnyx-reply-avatar" style="background:#2980b9">JK</div><div class="pnyx-reply-author">Jonas Keller</div></div>
+          <div class="pnyx-reply-tag">responded to: "transit outage was deliberate"</div>
+          <div class="pnyx-reply-text">The maintenance timeline doesn't support that claim. The city published inspection logs last week.</div>
+        </div>
+        <div class="pnyx-reply">
+          <div class="pnyx-reply-header"><div class="pnyx-reply-avatar" style="background:#8e44ad">NB</div><div class="pnyx-reply-author">Niko Brandt</div></div>
+          <div class="pnyx-reply-tag skipped">skipped claims</div>
+          <div class="pnyx-reply-text">Exactly, wake up people!</div>
+        </div>
+        <div class="pnyx-listening-indicator">1 of 2 replies engaged with a specific claim</div>
+      </div>
+    </article>
+
+    <!-- POST 2 -->
+    <article class="li-post" id="post-2">
+      <div class="li-post-body">
+        <div class="li-post-header">
+          <div class="li-post-avatar" style="background:#2980b9">JK</div>
+          <div class="li-post-meta">
+            <div class="li-post-author"><span class="li-post-author-row">Jonas Keller <span class="li-post-degree">&middot; 3rd+</span> <button class="li-post-follow">&middot; Follow</button></span></div>
+            <div class="li-post-headline">Policy analyst at Urban Research Institute</div>
+            <div class="li-post-time">8m &middot; <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 1110 0A5 5 0 013 8zm5.15-4h-1.3v4.3l3.73 2.15.65-1.1L8.15 7.5z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <p class="li-post-text">Early reports suggest the outage may be linked to maintenance delays, but the public statement is still thin. According to the city update, the review is ongoing.</p>
+      </div>
+      <div class="pnyx-badge-row">
+        <span class="pnyx-tag">Wahrheit: medium 48%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">Richtigkeit: strong 71%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">1 claim</span>
+      </div>
+      <div class="pnyx-explain">Claims are qualified and reasoning is present.</div>
+      <span class="pnyx-cta">Keep the exchange open</span>
+      <div class="pnyx-claims-expanded" id="claims-2">
+        Claims detected:
+        <ul><li>"The outage may be linked to maintenance delays" <span class="pnyx-claim-risk">unverified</span> <a class="pnyx-explore-link explore-trigger" data-claim="The outage may be linked to maintenance delays">Explore</a></li></ul>
+        Argument structure: partial reasoning with qualification
+      </div>
+      <div class="li-post-reactions">
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 01-1.69-2.74l-.49-1.47A2.76 2.76 0 0010.76 1 2.75 2.75 0 008 3.74v1.12a9.19 9.19 0 00.46 2.85L8.89 9H4.12A2.12 2.12 0 002 11.12a2.16 2.16 0 00.92 1.76A2.11 2.11 0 002 14.62a2.14 2.14 0 001.28 2 2 2 0 00-.28 1 2.12 2.12 0 002 2.12v.14A2.12 2.12 0 007.12 22h7.49a8.08 8.08 0 003.58-.84l.31-.16H22V11z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Like</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 12c0 3.87 3.13 7 7 7h1l4 4v-4h1c3.87 0 7-3.13 7-7s-3.13-7-7-7H9c-3.87 0-7 3.13-7 7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Comment</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M13 4v2l4.39 4H4v2h13.39L13 16.39V19l8-7.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Repost</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L20 5l-8.58 12.08L15.64 24z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Send</button>
+      </div>
+    </article>
+
+    <!-- POST 3: Erscheinung blur -->
+    <article class="li-post ai-blurred" id="post-3">
+      <div class="li-post-body">
+        <div class="li-post-header">
+          <div class="li-post-avatar" style="background:#607d8b">AN</div>
+          <div class="li-post-meta">
+            <div class="li-post-author"><span class="li-post-author-row">Alex Neumann <span class="li-post-degree">&middot; 3rd+</span></span></div>
+            <div class="li-post-headline">Digital strategy consultant</div>
+            <div class="li-post-time">33m &middot; <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 1110 0A5 5 0 013 8zm5.15-4h-1.3v4.3l3.73 2.15.65-1.1L8.15 7.5z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <p class="li-post-text">In today's rapidly evolving landscape, it's crucial that we navigate these challenges with a holistic approach. The tapestry of urban infrastructure demands robust, forward-thinking solutions that leverage synergies across all stakeholders. Let's delve into this important conversation and foster meaningful dialogue.</p>
+      </div>
+      <div class="pnyx-badge-row">
+        <span class="pnyx-tag">Wahrhaftigkeit: AI-likely</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">0 claims</span>
+      </div>
+      <div class="pnyx-explain">No genuine human presence detected. Content faded.</div>
+      <div class="li-post-reactions">
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 01-1.69-2.74l-.49-1.47A2.76 2.76 0 0010.76 1 2.75 2.75 0 008 3.74v1.12a9.19 9.19 0 00.46 2.85L8.89 9H4.12A2.12 2.12 0 002 11.12a2.16 2.16 0 00.92 1.76A2.11 2.11 0 002 14.62a2.14 2.14 0 001.28 2 2 2 0 00-.28 1 2.12 2.12 0 002 2.12v.14A2.12 2.12 0 007.12 22h7.49a8.08 8.08 0 003.58-.84l.31-.16H22V11z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Like</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 12c0 3.87 3.13 7 7 7h1l4 4v-4h1c3.87 0 7-3.13 7-7s-3.13-7-7-7H9c-3.87 0-7 3.13-7 7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Comment</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M13 4v2l4.39 4H4v2h13.39L13 16.39V19l8-7.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Repost</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L20 5l-8.58 12.08L15.64 24z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Send</button>
+      </div>
+    </article>
+
+    <!-- POST 4: Explore trigger -->
+    <article class="li-post" id="post-4">
+      <div class="li-post-body">
+        <div class="li-post-header">
+          <div class="li-post-avatar" style="background:#16a085">TR</div>
+          <div class="li-post-meta">
+            <div class="li-post-author"><span class="li-post-author-row">Tom Richter <span class="li-post-degree">&middot; 2nd</span> <button class="li-post-follow">&middot; Follow</button></span></div>
+            <div class="li-post-headline">Infrastructure reporter at CityPulse</div>
+            <div class="li-post-time">1h &middot; <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 1110 0A5 5 0 013 8zm5.15-4h-1.3v4.3l3.73 2.15.65-1.1L8.15 7.5z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <p class="li-post-text">The infrastructure budget was cut by 15% last year according to the city council minutes, which likely contributed to the maintenance backlog. However, correlation isn't causation &mdash; we need the full audit before pointing fingers.</p>
+      </div>
+      <div class="pnyx-badge-row">
+        <span class="pnyx-tag">Wahrheit: high 72%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">Richtigkeit: strong 78%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">2 claims</span>
+      </div>
+      <div class="pnyx-explain">Claims are qualified and reasoning is present.</div>
+      <span class="pnyx-cta">Keep the exchange open</span>
+      <div class="pnyx-claims-expanded" id="claims-4">
+        Claims detected:
+        <ul>
+          <li>"The infrastructure budget was cut by 15% last year" <span class="pnyx-claim-risk">unverified</span> <a class="pnyx-explore-link explore-trigger" data-claim="The infrastructure budget was cut by 15% last year">Explore</a></li>
+          <li>"Budget cuts likely contributed to the maintenance backlog" <span class="pnyx-claim-risk">unverified</span> <a class="pnyx-explore-link explore-trigger" data-claim="Budget cuts likely contributed to the maintenance backlog">Explore</a></li>
+        </ul>
+        Argument structure: structured argument with qualification
+      </div>
+      <div class="li-post-reactions">
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 01-1.69-2.74l-.49-1.47A2.76 2.76 0 0010.76 1 2.75 2.75 0 008 3.74v1.12a9.19 9.19 0 00.46 2.85L8.89 9H4.12A2.12 2.12 0 002 11.12a2.16 2.16 0 00.92 1.76A2.11 2.11 0 002 14.62a2.14 2.14 0 001.28 2 2 2 0 00-.28 1 2.12 2.12 0 002 2.12v.14A2.12 2.12 0 007.12 22h7.49a8.08 8.08 0 003.58-.84l.31-.16H22V11z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Like</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 12c0 3.87 3.13 7 7 7h1l4 4v-4h1c3.87 0 7-3.13 7-7s-3.13-7-7-7H9c-3.87 0-7 3.13-7 7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Comment</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M13 4v2l4.39 4H4v2h13.39L13 16.39V19l8-7.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Repost</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L20 5l-8.58 12.08L15.64 24z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Send</button>
+      </div>
+    </article>
+
+    <!-- POST 5 -->
+    <article class="li-post" id="post-5">
+      <div class="li-post-body">
+        <div class="li-post-header">
+          <div class="li-post-avatar" style="background:#27ae60">LS</div>
+          <div class="li-post-meta">
+            <div class="li-post-author"><span class="li-post-author-row">Lea Sommer <span class="li-post-degree">&middot; 1st</span></span></div>
+            <div class="li-post-headline">Community engagement lead</div>
+            <div class="li-post-time">14m &middot; <svg width="12" height="12" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 1110 0A5 5 0 013 8zm5.15-4h-1.3v4.3l3.73 2.15.65-1.1L8.15 7.5z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <p class="li-post-text">I get why people are frustrated, but blaming one group without evidence makes this harder to solve. What information would actually help here?</p>
+      </div>
+      <div class="pnyx-badge-row">
+        <span class="pnyx-tag">Wahrheit: low 18%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">Richtigkeit: mixed 52%</span><span class="pnyx-dot">&middot;</span>
+        <span class="pnyx-tag">1 claim</span>
+      </div>
+      <div class="pnyx-explain">Claims are qualified and reasoning is present.</div>
+      <span class="pnyx-cta">Keep the exchange open</span>
+      <div class="pnyx-claims-expanded" id="claims-5">
+        Claims detected:
+        <ul><li>"Blaming one group without evidence makes this harder to solve" <span class="pnyx-claim-risk">grounded</span> <a class="pnyx-explore-link explore-trigger" data-claim="Blaming one group without evidence makes this harder to solve">Explore</a></li></ul>
+        Argument structure: partial reasoning
+      </div>
+      <div class="li-post-reactions">
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M19.46 11l-3.91-3.91a7 7 0 01-1.69-2.74l-.49-1.47A2.76 2.76 0 0010.76 1 2.75 2.75 0 008 3.74v1.12a9.19 9.19 0 00.46 2.85L8.89 9H4.12A2.12 2.12 0 002 11.12a2.16 2.16 0 00.92 1.76A2.11 2.11 0 002 14.62a2.14 2.14 0 001.28 2 2 2 0 00-.28 1 2.12 2.12 0 002 2.12v.14A2.12 2.12 0 007.12 22h7.49a8.08 8.08 0 003.58-.84l.31-.16H22V11z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Like</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 12c0 3.87 3.13 7 7 7h1l4 4v-4h1c3.87 0 7-3.13 7-7s-3.13-7-7-7H9c-3.87 0-7 3.13-7 7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Comment</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M13 4v2l4.39 4H4v2h13.39L13 16.39V19l8-7.5z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Repost</button>
+        <button class="li-reaction-btn"><svg viewBox="0 0 24 24"><path d="M21 3L0 10l7.66 4.26L20 5l-8.58 12.08L15.64 24z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Send</button>
+      </div>
+    </article>
+  </main>
+
+  <!-- Right sidebar -->
+  <aside class="li-right">
+    <div class="pnyx-panel">
+      <h3><span class="pnyx-icon">P</span> Explore a claim</h3>
+      <p class="subtitle">Paste a claim or post to analyze and explore through deliberation.</p>
+      <textarea id="pnyx-panel-input" placeholder="Paste a claim to explore..."></textarea>
+      <button class="pnyx-analyze-btn" id="pnyx-panel-analyze">Analyze &amp; Explore</button>
+      <div class="pnyx-panel-divider"></div>
+      <div class="pnyx-panel-stats">
+        <div class="pnyx-panel-stat"><span>Posts scanned</span><span class="val">5</span></div>
+        <div class="pnyx-panel-stat"><span>Claims extracted</span><span class="val">8</span></div>
+        <div class="pnyx-panel-stat"><span>Data sent</span><span class="val">0 bytes</span></div>
+      </div>
+      <div class="pnyx-panel-divider"></div>
+      <div class="pnyx-panel-terms">
+        <a class="pnyx-panel-term" data-term="wahrheit">Wahrheit</a> &middot;
+        <a class="pnyx-panel-term" data-term="richtigkeit">Richtigkeit</a> &middot;
+        <a class="pnyx-panel-term" data-term="wahrhaftigkeit">Wahrhaftigkeit</a>
+      </div>
+    </div>
+    <div class="li-right-card">
+      <h3>Today's puzzles</h3>
+      <div class="li-puzzle-row"><span class="name"><span class="li-puzzle-icon" style="background:#E8D44D">&#9899;</span>Zip #305</span><span class="arrow">&rsaquo;</span></div>
+      <div class="li-puzzle-row"><span class="name"><span class="li-puzzle-icon" style="background:#5B9BD5">&#9632;</span>Mini Sudoku #143</span><span class="arrow">&rsaquo;</span></div>
+      <div class="li-puzzle-row"><span class="name"><span class="li-puzzle-icon" style="background:#F4845F">&#9670;</span>Tango #031</span><span class="arrow">&rsaquo;</span></div>
+      <div class="li-puzzle-row"><span class="name"><span class="li-puzzle-icon" style="background:#C292E0">&#9819;</span>Queens #171</span><span class="arrow">&rsaquo;</span></div>
+      <a class="li-show-more" href="#">Show more &rsaquo;</a>
+    </div>
+    <div class="li-right-card">
+      <h3>Add to your feed</h3>
+      <div class="li-suggestion">
+        <div class="li-suggestion-avatar" style="background:#0a66c2">TU</div>
+        <div class="li-suggestion-info"><div class="li-suggestion-name">TUM.ai</div><div class="li-suggestion-desc">Company &middot; Information Technology</div></div>
+        <button class="li-follow-btn">+ Follow</button>
+      </div>
+      <div class="li-suggestion">
+        <div class="li-suggestion-avatar" style="background:#2e7d32">GA</div>
+        <div class="li-suggestion-info"><div class="li-suggestion-name">Certure</div><div class="li-suggestion-desc">Venture Capital and Priva...</div></div>
+        <button class="li-follow-btn">+ Follow</button>
+      </div>
+      <div class="li-suggestion">
+        <div class="li-suggestion-avatar" style="background:#c62828">MK</div>
+        <div class="li-suggestion-info"><div class="li-suggestion-name">Martin Kirsch</div><div class="li-suggestion-desc">Startup founder | Product strategy</div></div>
+        <button class="li-follow-btn">+ Follow</button>
+      </div>
+      <a class="li-show-more" href="#">View all recommendations &rsaquo;</a>
+    </div>
+    <div class="li-promo-card">
+      <div class="sub">LinkedIn</div>
+      <div class="title">Your job search powered by your network</div>
+    </div>
+  </aside>
+</div>
+
+<!-- ═══ EXPLORE OVERLAY ═══ -->
+<div class="explore-overlay" id="explore-overlay">
+  <header class="explore-header">
+    <div class="explore-header-inner">
+      <h1 class="explore-logo">Pnyx <span class="explore-logo-sub">Explore</span></h1>
+      <button class="explore-back" id="explore-back">Back to feed</button>
+    </div>
+  </header>
+  <div class="explore-content" id="explore-content"></div>
+</div>
+
+<script>
+try {
+// ═══ LOADING ═══
+(function() {
+  const eBar = document.getElementById('load-ersch-bar'), eSt = document.getElementById('load-ersch-status');
+  const hBar = document.getElementById('load-hab-bar'), hSt = document.getElementById('load-hab-status');
+  const ov = document.getElementById('loading-overlay');
+  const s = [
+    { t:300, fn:()=>{ eBar.style.width='30%'; eSt.textContent='loading...'; }},
+    { t:700, fn:()=>{ hBar.style.width='20%'; hSt.textContent='loading...'; }},
+    { t:1100, fn:()=>{ eBar.style.width='60%'; eSt.textContent='tokenizer...'; }},
+    { t:1400, fn:()=>{ hBar.style.width='50%'; hSt.textContent='tokenizer...'; }},
+    { t:1800, fn:()=>{ eBar.style.width='100%'; eSt.textContent='ready'; eSt.style.color='var(--pnyx-primary)'; }},
+    { t:2200, fn:()=>{ hBar.style.width='100%'; hSt.textContent='ready'; hSt.style.color='var(--pnyx-primary)'; }},
+    { t:2800, fn:()=>{ ov.classList.add('hidden'); setTimeout(()=>ov.remove(),500); }},
+  ];
+  s.forEach(x => setTimeout(x.fn, x.t));
+})();
+
+// ═══ BADGE ROW: toggle claims ═══
+document.querySelectorAll('.pnyx-badge-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const post = row.closest('.li-post');
+    if (!post) return;
+    const exp = post.querySelector('.pnyx-claims-expanded');
+    if (exp) exp.classList.toggle('open');
+  });
+});
+
+// ═══ ERSCHEINUNG: click to reveal ═══
+document.querySelectorAll('.ai-blurred .li-post-text').forEach(el => {
+  el.addEventListener('click', () => el.closest('.li-post').classList.replace('ai-blurred', 'ai-revealed'));
+});
+
+// ═══ TERM TOOLTIPS ═══
+const TERMS = {
+  wahrheit: { title: 'Wahrheit (Truth)', text: 'Every speech act implicitly claims to say something true. Our model detects when posts make strong factual claims without grounding.', source: 'Habermas, TCA (1981)' },
+  richtigkeit: { title: 'Richtigkeit (Rightness)', text: 'Rational discourse requires justification \u2014 reasons, evidence, logical structure. Our model measures argument quality.', source: 'Habermas, TCA (1981)' },
+  wahrhaftigkeit: { title: 'Wahrhaftigkeit (Sincerity)', text: 'Is the speaker genuine? AI-generated text simulates speech without a speaker behind it. Our Erscheinung model detects this absence.', source: 'Arendt, The Human Condition (1958)' },
+};
+document.addEventListener('click', (e) => {
+  const tag = e.target.closest('.pnyx-tag');
+  if (!tag) return;
+  e.stopPropagation();
+  const text = tag.textContent.toLowerCase();
+  let key = null;
+  if (text.includes('wahrheit') && !text.includes('wahrhaftigkeit')) key = 'wahrheit';
+  else if (text.includes('richtigkeit')) key = 'richtigkeit';
+  else if (text.includes('wahrhaftigkeit')) key = 'wahrhaftigkeit';
+  if (!key) return;
+  document.querySelectorAll('.pnyx-term-tooltip').forEach(t => t.remove());
+  const term = TERMS[key];
+  const tt = document.createElement('div');
+  tt.className = 'pnyx-term-tooltip';
+  tt.innerHTML = `<strong style="color:var(--pnyx-primary)">${term.title}</strong><br>${term.text}<div style="font-size:10px;color:var(--li-text-tertiary);margin-top:4px;font-style:italic">${term.source}</div>`;
+  tt.style.cssText = 'position:absolute;z-index:200;background:var(--li-surface);border:1px solid var(--li-border);border-radius:8px;padding:12px;font-size:12px;line-height:1.5;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:Sora,sans-serif;top:100%;left:0;margin-top:4px';
+  const row = tag.closest('.pnyx-badge-row');
+  if (row) { row.style.position = 'relative'; row.appendChild(tt); }
+  setTimeout(() => document.addEventListener('click', function h() { tt.remove(); document.removeEventListener('click', h); }, { once: true }), 10);
+});
+
+// ═══ PAUSE ═══
+let pauseShown = false;
+
+window.handleCommentClick = function(e) {
+  e.stopPropagation();
+  const repliesS = document.getElementById('replies-1');
+  const pauseC = document.getElementById('pause-container-1');
+  const replyA = document.getElementById('reply-area-1');
+  if (repliesS) repliesS.style.display = 'block';
+  if (pauseShown) return;
+  pauseShown = true;
+  pauseC.innerHTML = `<div class="pnyx-pause-overlay"><div class="pnyx-pause-card">
+    <div class="pnyx-pause-header">Before you reply</div>
+    <div class="pnyx-pause-subtitle">Which claim are you responding to?</div>
+    <div class="pnyx-pause-claims">
+      <label class="pnyx-pause-claim"><input type="checkbox" name="claim" value="0"> "Officials are hiding the real numbers"</label>
+      <label class="pnyx-pause-claim"><input type="checkbox" name="claim" value="1"> "The transit outage was deliberate"</label>
+    </div>
+    <div class="pnyx-pause-prompt">Selecting a claim helps your reply engage with what was actually said.</div>
+    <div class="pnyx-pause-actions"><button class="pnyx-pause-continue" id="pause-continue" disabled>Continue</button><a class="pnyx-pause-skip" id="pause-skip">Skip</a></div>
+  </div></div>`;
+  const cbs = pauseC.querySelectorAll('input[type="checkbox"]');
+  const cont = document.getElementById('pause-continue');
+  cbs.forEach(cb => cb.addEventListener('change', () => { cont.disabled = !Array.from(cbs).some(c => c.checked); }));
+  cont.addEventListener('click', () => {
+    const txt = Array.from(cbs).filter(c=>c.checked)[0]?.parentElement.textContent.trim() || '';
+    pauseC.innerHTML = '';
+    replyA.innerHTML = `<div class="pnyx-reply-area"><textarea class="pnyx-reply-textarea" placeholder="Write a reply..."></textarea><div class="pnyx-reply-actions"><div class="pnyx-reply-tag">responding to: ${txt}</div><button class="pnyx-reply-submit">Post</button></div></div>`;
+    replyA.querySelector('textarea').focus();
+  });
+  document.getElementById('pause-skip').addEventListener('click', (e) => {
+    e.preventDefault(); pauseC.innerHTML = '';
+    replyA.innerHTML = `<div class="pnyx-reply-area"><textarea class="pnyx-reply-textarea" placeholder="Write a reply..."></textarea><div class="pnyx-reply-actions"><div class="pnyx-reply-tag skipped">skipped claims</div><button class="pnyx-reply-submit">Post</button></div></div>`;
+    replyA.querySelector('textarea').focus();
+  });
+  pauseC.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+// ═══ EXPLORE (pre-generated with Opus, ChosenPath pregeneration pattern) ═══
+const MAX_BEATS = 3;
+const es = { claim:'', beats:[], positionChain:[], currentBeat:0 };
+
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// Pre-generated deliberation rounds for all demo claims
+const PREGENS = {
+"Officials are hiding the real numbers": [
+  { resolution:"", situation:"This claim asserts concealment as fact, but it actually raises two distinct questions. First, a truth question: are the numbers actually different from what was published? Second, and this is where it gets interesting, a normative question: what counts as 'hiding'? Delayed publication, selective framing, and outright fabrication are very different acts, but this claim flattens them into one accusation. You're being asked to accept all three simultaneously.", options:[
+    {type:"stance",text:"The distinction between delay and concealment matters, but the pattern matters more. When officials consistently release numbers late, after the news cycle moves on, the effect is the same as hiding them.",preview:"Patterns reveal intent"},
+    {type:"concession",text:"Calling it 'hiding' presumes intent I can't prove. The numbers may be delayed for legitimate reasons - verification, legal review, interdepartmental coordination. My frustration with opacity doesn't make it conspiracy.",preview:"Frustration isn't evidence"},
+    {type:"escalation",text:"Whether they're hiding numbers or not is almost beside the point. The real issue is that the public has no independent mechanism to verify government data in real time. We're debating their honesty because we have no alternative to trust.",preview:"The system requires trust it hasn't earned"}
+  ]},
+  { resolution:"Your previous choice committed you to a position on institutional transparency - but it sidestepped whose transparency you're actually demanding.", situation:"Consider who is centered in this claim. 'Officials are hiding' positions the public as passive recipients of information that authorities choose to release or withhold. But the public is not one thing. Transit riders who depend on the system daily have different information needs than journalists, opposition politicians, or infrastructure investors. When you demand transparency, you're implicitly choosing whose need to know takes priority. The commuter wants to know if the train is safe tomorrow. The journalist wants accountability. The opposition wants leverage. These are not the same demand.", options:[
+    {type:"stance",text:"The commuter's need is primary. Infrastructure transparency should be measured by whether the people who physically depend on the system have enough information to make safety decisions.",preview:"Prioritize those at risk"},
+    {type:"concession",text:"I have to admit that 'transparency' without specifying for whom is an empty demand. Different stakeholders need different information at different times, and pretending otherwise lets me avoid the harder question of institutional design.",preview:"Transparency is not one thing"},
+    {type:"escalation",text:"The fact that we're debating who deserves which information reveals something deeper: public infrastructure operates with a fundamentally paternalistic information architecture. The question isn't who should know - it's why anyone is in a position to decide that.",preview:"Information control is the real infrastructure"}
+  ]},
+  { resolution:"You've now taken a position on both evidence and perspective - but the tension between them reveals what this claim is really about.", situation:"Here's what your deliberation has surfaced: the claim 'officials are hiding the real numbers' is not really about numbers at all. It's about the relationship between a public and its institutions. Every position you've taken circles the same core: when institutions control information about shared infrastructure, the public is structurally positioned as a supplicant - asking for what should already be theirs. The anger in the original claim isn't irrational. It's the sound of someone who knows they're dependent on an institution that doesn't have to answer to them. The question is what you do with that recognition.", options:[
+    {type:"stance",text:"This means mandatory real-time data publication for all publicly funded infrastructure. Not transparency reports. Not FOIA requests. Default openness, with the burden of justification on any redaction.",preview:"Default open, justify every closure"},
+    {type:"concession",text:"Mandatory openness sounds right in principle, but I have to reckon with the fact that raw data without context can be more misleading than curated disclosure. The answer might be institutional redesign - independent verification bodies - rather than just more data.",preview:"More data isn't always more clarity"},
+    {type:"escalation",text:"If the public must depend on institutions that structurally resist accountability, then the project isn't better transparency. It's building parallel infrastructure for public knowledge that doesn't depend on institutional permission at all.",preview:"Build outside the institution"}
+  ]}
+],
+"The transit outage was deliberate": [
+  { resolution:"", situation:"'Deliberate' is doing enormous work in this sentence. It could mean someone decided to cause an outage, or it could mean someone decided that preventing an outage wasn't worth the cost. These are morally very different claims, but they feel the same to someone stranded at a platform. The question is whether you're making an accusation of sabotage or an accusation of negligence - and whether the distinction matters to you.", options:[
+    {type:"stance",text:"The distinction between sabotage and negligence collapses when the outcome was foreseeable. If maintenance was deferred knowing failures would result, the outage was chosen, even if no one flipped a switch.",preview:"Foreseen consequences are chosen"},
+    {type:"concession",text:"I'm drawn to the word 'deliberate' because it assigns blame cleanly, but I don't actually have evidence of intent. What I have is an outcome and a suspicion. The honest move is to demand an investigation, not declare a verdict.",preview:"Suspicion isn't a verdict"},
+    {type:"escalation",text:"Asking whether it was deliberate already accepts the framing that individual intent is what matters. But transit systems fail because of budget structures, political incentives, and institutional decay - none of which require a villain.",preview:"Systems fail without villains"}
+  ]},
+  { resolution:"Your choice revealed whether you locate responsibility in persons or in structures - but both framings avoid a harder question.", situation:"Whoever is responsible, the people most affected by the outage - low-income commuters without cars, shift workers who can't be late, elderly riders with no alternatives - had no voice in the decisions that led to it. They weren't consulted on the maintenance budget. They weren't warned about the risk. They experienced the consequence of someone else's cost-benefit analysis. The question of 'deliberate or not' is being debated by people with options, about people without them.", options:[
+    {type:"stance",text:"This is exactly why 'deliberate' matters. When the affected population has no voice in the decision, any choice that foreseeably harms them is an exercise of power over them, whether or not it's called a policy.",preview:"Powerlessness makes intent irrelevant"},
+    {type:"concession",text:"I've been arguing about blame when I should be arguing about inclusion. The real failure isn't the outage itself - it's that the people who bear the cost of infrastructure decisions are excluded from making them.",preview:"Exclusion is the deeper failure"},
+    {type:"escalation",text:"If transit-dependent populations are structurally excluded from decisions that affect them, then the system isn't failing - it's working as designed. 'Deliberate' might be the wrong word for the outage, but it's the right word for the exclusion.",preview:"The exclusion is deliberate"}
+  ]},
+  { resolution:"You've traced the claim from intent to structure to power - and arrived at the tension underneath.", situation:"Your deliberation has surfaced something the original claim couldn't: the word 'deliberate' is a cry for agency in a system that offers none. Whether the outage was planned, neglected into existence, or structurally inevitable, the experience of the person stranded on the platform is the same - they are subject to a decision they didn't make and can't contest. The real question isn't whether someone chose to cause the outage. It's whether anyone is in a position to be held responsible when the system's design distributes accountability so thinly that no one is.", options:[
+    {type:"stance",text:"Diffused accountability is itself a choice. Someone designed the governance structure that makes it impossible to point a finger. That design is where 'deliberate' belongs.",preview:"Accountability diffusion is a design choice"},
+    {type:"concession",text:"I want someone to be responsible, but I have to accept that complex infrastructure genuinely distributes causation across hundreds of actors and decades of decisions. My desire for a clear villain may be incompatible with how systems actually fail.",preview:"Complexity resists clean blame"},
+    {type:"escalation",text:"If no one can be held responsible for the foreseeable consequences of institutional decisions, then representative governance has failed for this domain. The question becomes whether transit should be governed differently - by the riders themselves.",preview:"Governance by those who depend on it"}
+  ]}
+],
+"The infrastructure budget was cut by 15% last year": [
+  { resolution:"", situation:"This claim presents a number - 15% - as though it speaks for itself. But a budget cut is not a single fact; it's a relationship between a political decision and its material consequences. The 15% tells you what was removed. It tells you nothing about what was left, what was deferred, or who decided that this particular 15% was expendable. You're being given a number where you need a story.", options:[
+    {type:"stance",text:"The number does speak for itself when the system was already underfunded. Cutting 15% from adequate funding is austerity. Cutting 15% from a maintenance backlog is acceleration toward failure.",preview:"Context makes the number damning"},
+    {type:"concession",text:"I'm treating the 15% as self-evidently bad, but I don't actually know the baseline. If the previous budget included wasteful line items or if efficiency gains offset the cut, the number alone doesn't prove harm.",preview:"The baseline matters more than the cut"},
+    {type:"escalation",text:"The fact that a 15% budget cut can happen to critical infrastructure without public debate reveals that infrastructure spending is treated as discretionary. The number isn't the scandal - the governance category is.",preview:"Infrastructure is misclassified as discretionary"}
+  ]},
+  { resolution:"Your position on the number revealed what you think infrastructure budgets are actually for - maintenance of what exists, or a political resource to be allocated.", situation:"There's a perspective this debate consistently ignores: the workers. Maintenance crews, engineers, inspectors - they saw the consequences of the cut before anyone else. They filed reports, flagged risks, and watched their warnings disappear into bureaucratic layers. The 15% wasn't abstract to them. It meant deferred repairs they'd be blamed for when the system failed. When we debate whether the cut 'caused' the outage, we erase the people who were telling anyone who'd listen that it would.", options:[
+    {type:"stance",text:"The workers' warnings are evidence. If institutional records show that maintenance staff flagged risks after the cut, the causal chain isn't speculative - it's documented. The debate should center those reports.",preview:"Workers' warnings are the evidence"},
+    {type:"concession",text:"I want to center the workers, but I should be honest: frontline staff always want more resources, and not every warning predicts a real failure. Taking their perspective as authoritative risks conflating operational frustration with structural analysis.",preview:"Not every warning predicts failure"},
+    {type:"escalation",text:"The fact that worker warnings were filed and ignored tells you the budget cut wasn't just a resource decision - it was an epistemological one. The institution decided that the knowledge of the people closest to the infrastructure didn't count.",preview:"Whose knowledge counts is a power question"}
+  ]},
+  { resolution:"You've moved from the number to the people to the institution's relationship with its own knowledge - and the fundamental tension is now visible.", situation:"Here's what your deliberation has revealed: a 15% budget cut is never just fiscal. It's a statement about what matters. Every budget is a moral document - it declares what an institution values enough to fund and what it's willing to let degrade. The debate about whether 15% 'caused' the outage is a debate about causation. But the decision to cut was a debate about values, and that debate happened without the public, without the workers, and without any obligation to justify the trade-off. The number is the trace of a decision. The question is whether the decision process itself was legitimate.", options:[
+    {type:"stance",text:"It wasn't legitimate. A 15% cut to public infrastructure without public deliberation, risk assessment, or worker consultation fails every standard of democratic accountability.",preview:"No deliberation, no legitimacy"},
+    {type:"concession",text:"Demanding full public deliberation for every budget line is impractical, and I have to acknowledge that. But infrastructure crosses a threshold - when failure means physical harm to people who depend on it, the bar for justification should be higher than a council vote.",preview:"Infrastructure needs a higher bar"},
+    {type:"escalation",text:"If budgets are moral documents, then budget-setting should be a public, participatory process for any spending category where failure harms people who have no alternative. The 15% isn't the problem. The process that made it possible without consent is.",preview:"Budgets need democratic consent"}
+  ]}
+],
+"The outage may be linked to maintenance delays": [
+  { resolution:"", situation:"This is one of the more honest claims in the feed - it qualifies itself with 'may be linked.' But that qualification creates its own problem. In public discourse, hedged language often functions as a way to make an accusation while maintaining deniability. The speaker gets credit for being careful while still planting the connection. Are you reading this as genuine epistemic humility, or as a rhetorical strategy?", options:[
+    {type:"stance",text:"The hedge is appropriate. Causal claims about complex systems should be qualified until evidence is in. This is what responsible public speech looks like, and we should reward it rather than treating it as weakness.",preview:"Hedging is intellectual honesty"},
+    {type:"concession",text:"I want to reward the hedge, but I notice that 'may be linked' still centers one explanation while appearing neutral. A truly open statement would present multiple possible causes equally, not lead with the politically convenient one.",preview:"Even hedges can frame"},
+    {type:"escalation",text:"The deeper issue is that public discourse has no grammar for genuine uncertainty. You either assert or you hedge, and both are read as strategic moves. The problem isn't this speaker's phrasing - it's that we've lost the ability to say 'I don't know yet' and be believed.",preview:"We can't speak uncertainty anymore"}
+  ]},
+  { resolution:"Your reading of the hedge revealed your assumptions about what public speech is for - truth-seeking or persuasion.", situation:"Consider the institutional position of this speaker: a policy analyst at a research institute. Their credibility depends on being careful, but their relevance depends on being timely. The hedge 'may be linked' lets them enter the conversation before the evidence is complete. This isn't dishonesty - it's the structural pressure of a discourse environment that punishes both premature certainty and patient silence. If you wait for the full audit, the narrative is already set. If you speak now, you're speculating. The analyst is trapped.", options:[
+    {type:"stance",text:"The trap is real, and the analyst is navigating it well. The alternative - silence until certainty - means ceding the narrative to people with no such scruples. Qualified speech in real time is the best available option.",preview:"Qualified speech beats strategic silence"},
+    {type:"concession",text:"But by entering early with a hedged claim, the analyst is still shaping the narrative before evidence supports it. The 'may' will be forgotten; the 'linked to maintenance delays' will stick. Good intentions don't prevent framing effects.",preview:"Intentions don't prevent framing"},
+    {type:"escalation",text:"The real question is why we accept a discourse environment where this trap exists at all. If the news cycle forces experts to choose between irrelevance and premature claims, the structure of public attention is itself a threat to truth.",preview:"Attention economy versus truth"}
+  ]},
+  { resolution:"You've traced the hedge from language to institution to the structure of public attention itself.", situation:"Your deliberation has arrived at something uncomfortable: the most epistemically honest claim in the feed is also the most vulnerable. 'May be linked' invites the conspiratorial thinker to say 'they won't even commit to it' and the partisan to say 'see, even the experts agree.' The hedged claim is appropriated by everyone and owned by no one. What this reveals is that the quality of a claim - its honesty, its qualification, its care - does not determine how it functions in public discourse. Good claims and bad claims are processed by the same attention economy, and the careful ones lose.", options:[
+    {type:"stance",text:"Then the project is building infrastructure that makes careful claims visible as careful. Not just content moderation - structural markers that distinguish qualification from assertion, evidence from speculation.",preview:"Make epistemic quality visible"},
+    {type:"concession",text:"But making quality visible assumes people value quality, and the evidence for that is thin. The attention economy rewards intensity, not care. The infrastructure I want might exist and still not matter.",preview:"Visibility doesn't guarantee uptake"},
+    {type:"escalation",text:"If good-faith speech is structurally disadvantaged in the current information environment, then the environment is a threat to democratic deliberation. The question isn't how to hedge better - it's how to rebuild the conditions under which honesty is viable.",preview:"Rebuild conditions for honest speech"}
+  ]}
+],
+"Budget cuts likely contributed to the maintenance backlog": [
+  { resolution:"", situation:"'Likely contributed' is a causal claim wrapped in probabilistic language. It sounds measured, but it's doing something specific: it positions budget cuts as the primary explanatory variable while acknowledging that other factors exist. The word 'contributed' lets you agree without specifying how much. 10%? 80%? The claim's persuasive power comes precisely from leaving this open.", options:[
+    {type:"stance",text:"In systems with documented underfunding, contribution claims don't need precise percentages. When you cut the budget for road repair and the roads deteriorate, the causal link isn't speculative - it's mechanical.",preview:"Some causes are mechanical"},
+    {type:"concession",text:"I find 'contributed' compelling because it confirms my prior about austerity, but I should ask: what else contributed? Contractor mismanagement, demand growth, material cost inflation, engineering failures? By centering the budget cut, I may be satisfying a political reflex rather than understanding the system.",preview:"Am I confirming my own bias?"},
+    {type:"escalation",text:"The appeal of 'budget cuts caused it' is that it identifies a reversible decision. If we just restore funding, the problem goes away. But what if the maintenance backlog reflects something that more money can't fix - institutional capacity that was lost, expertise that left, organizational knowledge that degraded?",preview:"What if money can't fix it?"}
+  ]},
+  { resolution:"Your choice revealed whether you think infrastructure problems are fundamentally about resources or about institutions.", situation:"Notice who is making this claim: an infrastructure reporter. Their professional identity is built on the premise that infrastructure decisions matter and that someone should be covering them. The 'budget cuts contributed' narrative serves their beat - it makes infrastructure legible as a political story. But there's a class of infrastructure failure that doesn't make good copy: gradual organizational decay, knowledge loss through retirement, the slow erosion of institutional competence. These don't have a villain or a decision point. They're not stories. Is the reporter's framing accurate, or is it shaped by what makes a publishable article?", options:[
+    {type:"stance",text:"The reporter's framing is valid even if it's partial. Budget cuts are documented, datable, attributable decisions. Institutional decay is real but diffuse. Journalism needs entry points, and fiscal decisions are legitimate ones.",preview:"Fiscal decisions are valid entry points"},
+    {type:"concession",text:"I should take seriously that the reporter's professional incentive aligns with a narrative of identifiable culprits. The story that gets published shapes the public's causal model of failure, and if systemic decay is unreportable, it becomes invisible.",preview:"Unreportable causes become invisible"},
+    {type:"escalation",text:"If journalism can only narrate infrastructure failure through discrete decisions, then the public understanding of infrastructure is permanently distorted. The most dangerous forms of decay - the ones without a dateable decision to blame - are the ones we'll never see coming.",preview:"We can only see failures with villains"}
+  ]},
+  { resolution:"You've moved from the claim to the claimant to the structure of public knowledge itself - and the tension is now clear.", situation:"Here is what your deliberation has uncovered: 'budget cuts likely contributed to the maintenance backlog' may be true, but its truth is not why it circulates. It circulates because it's the kind of causal claim our information environment can process - simple, attributable, reversible. The forms of infrastructure failure that don't fit this template - slow institutional erosion, knowledge loss, organizational entropy - don't get claimed at all. They have no spokesperson. Your deliberation has been about one claim, but the harder question is about all the claims that were never made because no one's professional interest aligns with making them.", options:[
+    {type:"stance",text:"This means the public needs epistemic infrastructure - not just reporters, but institutions whose job is to surface the causes that don't make good stories. Auditors, inspectors, ombudsmen with public communication mandates.",preview:"Build epistemic infrastructure"},
+    {type:"concession",text:"I'm drawn to institution-building, but I should acknowledge that adding more institutions to monitor institutions has its own failure mode. The audit bodies themselves can become captured, underfunded, or irrelevant. There may be no institutional fix for institutional decay.",preview:"Institutions can't always fix institutions"},
+    {type:"escalation",text:"If the causes that matter most are the ones that can't be narrated, then democratic accountability for infrastructure is partially an illusion. We hold people responsible for the failures we can see and name, while the deeper ones proceed unchecked.",preview:"Accountability only reaches visible failures"}
+  ]}
+],
+"Blaming one group without evidence makes this harder to solve": [
+  { resolution:"", situation:"This claim frames itself as a call for rationality: stop blaming, start solving. But embedded in it is an assumption worth examining - that blame and problem-solving are opposites. In many political contexts, assigning responsibility is a necessary step toward solving the problem. If the transit authority's decisions caused the outage, identifying that isn't 'blame' - it's diagnosis. The question is whether this speaker is defending due process or defending the accused.", options:[
+    {type:"stance",text:"Blame without evidence is legitimately harmful - it poisons the deliberative environment and makes the accused defensive rather than transparent. This speaker is right that premature attribution undermines the investigation, not advances it.",preview:"Premature blame undermines investigation"},
+    {type:"concession",text:"I'm sympathetic to the call for evidence, but I notice it functions as a silencing move. 'Don't blame without proof' can mean 'don't ask uncomfortable questions until the institution has time to manage the narrative.' Demanding evidence before allowing accusation protects the powerful.",preview:"Evidence demands can protect power"},
+    {type:"escalation",text:"The framing of 'blame vs. solve' is itself a political position. It treats accountability as an obstacle to solutions, when in fact accountability is often the only mechanism that creates the pressure for solutions. People with power rarely solve problems voluntarily.",preview:"Accountability creates pressure to solve"}
+  ]},
+  { resolution:"Your choice revealed whether you see accountability as a tool for solutions or as a distraction from them.", situation:"Consider the speaker's position: 'community engagement lead.' Their professional role is to facilitate dialogue, which means maintaining relationships with all parties. 'Don't blame without evidence' is also 'don't make my job harder.' This isn't dishonest - it's situated. But it means the call for evidence-based deliberation comes from someone whose professional interest is in keeping the conversation civil, not necessarily in reaching the truth. Civility and truth are sometimes aligned, but when they diverge, whose interest does this speaker serve?", options:[
+    {type:"stance",text:"The speaker's situated interest doesn't invalidate the argument. 'Don't blame without evidence' is a sound epistemic principle regardless of who benefits from it. Rejecting it because the speaker has a professional interest in civility is an ad hominem move.",preview:"The principle stands regardless of motive"},
+    {type:"concession",text:"I should take seriously that calls for civility systematically advantage the status quo. In any dispute, the party with more power benefits from procedural delay. If I insist on evidence before accountability, I'm choosing a process that favors whoever controls the evidence.",preview:"Process favors who controls evidence"},
+    {type:"escalation",text:"The deeper question is whether 'community engagement' as a professional practice is compatible with genuine accountability. If your job is maintaining relationships, you cannot simultaneously be the person who names institutional failure. The role itself is conflicted.",preview:"Engagement and accountability conflict"}
+  ]},
+  { resolution:"You've traced the claim from principle to position to the structural tension between dialogue and accountability.", situation:"Your deliberation has surfaced a genuine democratic dilemma: the conditions for productive dialogue (patience, evidence, civility) are also the conditions under which institutional power is most comfortable. The conditions for accountability (urgency, naming, disruption) are also the conditions under which dialogue breaks down. There is no position that resolves this. You can prioritize process and risk protecting the powerful, or prioritize accountability and risk mob dynamics. The original claim - 'blaming without evidence makes it harder to solve' - is true. But so is its opposite: refusing to blame until you have evidence makes it harder to hold anyone responsible. The question is which risk you're willing to live with.", options:[
+    {type:"stance",text:"I'd rather risk premature accountability than comfortable impunity. Institutions have lawyers, PR teams, and time. The public has attention spans. If the balance of power is this asymmetric, erring toward accountability is the democratic choice.",preview:"Err toward accountability"},
+    {type:"concession",text:"Both risks are real and I can't eliminate either. The honest answer is that different situations call for different defaults - and what I actually need is better judgment about when to prioritize process and when to prioritize urgency, not a universal rule.",preview:"Context determines the default"},
+    {type:"escalation",text:"The fact that democracy requires both dialogue and disruption, and that these are structurally opposed, means democratic practice is permanently unstable. There is no institutional design that resolves this. It has to be renegotiated in every case, which is what Mouffe meant by agonism.",preview:"Democracy is permanent negotiation"}
+  ]}
+]
+};
+
+const eOv=document.getElementById('explore-overlay'), eCt=document.getElementById('explore-content');
+
+function showOpening(){
+  eCt.innerHTML=`<div class="explore-opening"><div class="explore-opening-claim">"${escapeHtml(es.claim)}"</div><div class="explore-opening-risk">unverified claim</div><div class="explore-opening-desc">Three rounds of structured deliberation. Three moves each round: stance, concession, escalation. No move is ranked above another.</div><button class="explore-begin-btn" id="explore-begin">Begin deliberation</button></div>`;
+  document.getElementById('explore-begin').addEventListener('click',()=>{
+    es.beats=[]; es.positionChain=[]; es.currentBeat=0;
+    const pregen = PREGENS[es.claim];
+    if (pregen) { es.beats[0]=pregen[0]; showBeat(0); }
+  });
+}
+
+function showBeat(i){ const beat=es.beats[i]; const el=document.createElement('div'); el.className='explore-beat';
+  el.innerHTML=`<div class="explore-beat-label">Round ${i+1} of ${MAX_BEATS}</div>${i>0&&beat.resolution?`<div style="font-size:14px;color:var(--pnyx-primary);font-style:italic;margin-bottom:12px;padding:8px 12px;background:var(--pnyx-stance-light);border-left:3px solid var(--pnyx-primary);border-radius:0 4px 4px 0">${escapeHtml(beat.resolution)}</div>`:''}<div class="explore-beat-situation">${escapeHtml(beat.situation)}</div><div class="explore-options">${beat.options.map((o,j)=>`<button class="explore-option option-${o.type}" data-i="${j}" data-t="${o.type}"><span class="explore-option-type">${o.type}</span><span class="explore-option-text">${escapeHtml(o.text)}</span>${o.preview?`<span style="display:block;font-size:12px;color:var(--li-text-tertiary);margin-top:4px">${escapeHtml(o.preview)}</span>`:''}</button>`).join('')}</div>`;
+  if(i===0) eCt.innerHTML=''; eCt.appendChild(el); el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.querySelectorAll('.explore-option').forEach(btn=>{ btn.addEventListener('click',()=>{
+    const ci=parseInt(btn.dataset.i), ct=btn.dataset.t; es.positionChain.push({beat:i+1,type:ct,text:beat.options[ci].text});
+    el.querySelectorAll('.explore-option').forEach((o,j)=>{ o.classList.add(j===ci?'chosen':'not-chosen'); o.style.pointerEvents='none'; });
+    if(i+1>=MAX_BEATS){ showSummary(); return; }
+    // Instant: use pre-generated content
+    const pregen = PREGENS[es.claim];
+    if(pregen && pregen[i+1]) { es.beats[i+1]=pregen[i+1]; setTimeout(()=>showBeat(i+1), 400); }
+  }); });
+}
+
+function showSummary(){ const el=document.createElement('div'); el.className='explore-summary';
+  el.innerHTML=`<div class="explore-summary-title">Deliberation complete</div><div class="explore-summary-claim">"${escapeHtml(es.claim)}"</div><div class="explore-summary-section"><h3>Your position chain</h3>${es.positionChain.map((c,i)=>`<div class="explore-chain-entry"><span class="explore-chain-badge badge-${c.type}">${c.type}</span><span>Round ${i+1}: ${escapeHtml(c.text.substring(0,80))}${c.text.length>80?'...':''}</span></div>`).join('')}</div><div class="explore-summary-section"><h3>What happened</h3><p style="font-size:14px;line-height:1.6;color:var(--li-text-secondary)">Three rounds of deliberation on a single claim. Each round introduced new information and three possible moves. Your choices trace a path through the disagreement &mdash; not toward consensus, but toward clarity.</p></div>`;
+  eCt.appendChild(el); el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+document.addEventListener('click',(e)=>{ const t=e.target.closest('.explore-trigger'); if(!t) return; e.preventDefault(); e.stopPropagation();
+  es.claim=t.dataset.claim||'The infrastructure budget was cut by 15% last year'; eOv.classList.add('active'); showOpening(); });
+document.getElementById('explore-back').addEventListener('click',()=>eOv.classList.remove('active'));
+
+// Panel analyze button
+document.getElementById('pnyx-panel-analyze').addEventListener('click',()=>{
+  const text=document.getElementById('pnyx-panel-input').value.trim();
+  if(!text) return;
+  es.claim=text; eOv.classList.add('active'); showOpening();
+});
+
+// Panel term links
+document.querySelectorAll('.pnyx-panel-term').forEach(link=>{
+  link.addEventListener('click',()=>{
+    const key=link.dataset.term; if(!TERMS[key]) return;
+    document.querySelectorAll('.pnyx-term-tooltip').forEach(t=>t.remove());
+    const term=TERMS[key]; const tt=document.createElement('div');
+    tt.className='pnyx-term-tooltip';
+    tt.innerHTML=`<strong style="color:var(--pnyx-primary)">${term.title}</strong><br>${term.text}<div style="font-size:10px;color:var(--li-text-tertiary);margin-top:4px;font-style:italic">${term.source}</div>`;
+    tt.style.cssText='position:absolute;z-index:200;background:var(--li-surface);border:1px solid var(--li-border);border-radius:8px;padding:12px;font-size:12px;line-height:1.5;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,0.1);font-family:Sora,sans-serif;bottom:100%;left:0;margin-bottom:4px';
+    const panel=link.closest('.pnyx-panel-terms'); panel.style.position='relative'; panel.appendChild(tt);
+    setTimeout(()=>document.addEventListener('click',function h(){tt.remove();document.removeEventListener('click',h);},{once:true}),10);
+  });
+});
+} catch(err) { console.error('PNYX SCRIPT ERROR:', err); document.title = 'ERROR: ' + err.message; }
+</script>
+</body>
+</html>
