@@ -9,9 +9,6 @@
 
 | Need | Go to |
 |------|-------|
-| Product direction | [STRATEGY.md](STRATEGY.md) |
-| Full V2 spec | [SPEC-PNYX-V2.md](SPEC-PNYX-V2.md) |
-| Decisions log | [DECISIONS.md](DECISIONS.md) |
 | Problem framing | [kb/problem-space.md](kb/problem-space.md) |
 | Prior art | [kb/prior-art.md](kb/prior-art.md) |
 
