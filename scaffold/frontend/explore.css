@@ -36,12 +36,7 @@
   --pnyx-escalation-light: #f0f4ed;
   --pnyx-escalation-border: rgba(74,80,67,0.2);
 
-  /* JS compatibility aliases (explore.js inline styles reference old names) */
   --li-secondary: var(--pnyx-primary-mid);
-  --ag-good: var(--pnyx-primary);
-  --ag-good-light: var(--pnyx-surface);
-  --ag-warn: var(--pnyx-attention);
-  --ag-warn-light: var(--pnyx-attention-light);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

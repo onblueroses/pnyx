@@ -75,7 +75,6 @@ V2 adds four layers on top without touching the model infrastructure.
 | scaffold/frontend/explore.html | Explore mode page | DONE |
 | scaffold/frontend/explore.js | Explore deliberation engine | DONE |
 | scaffold/frontend/explore.css | Explore mode styles | DONE |
-| pitch/ | Pitch slides (NEW) | NOT STARTED |
 | scripts/ | Training scripts | DONE |
 | data/ | Training data | DONE |
 | docs/ | Model contracts | UPDATED (v0.6) |

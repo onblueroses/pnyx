@@ -96,22 +96,22 @@ function crLabel(p) {
 	const hi = thresholds.habermas / 100;
 	const lo = 1 - hi;
 	if (p > hi)
-		return { label: "W: high", cls: "pnyx-danger", full: "Wahrheit: high" };
+		return { label: "W: high", cls: "pnyx-high", full: "Wahrheit: high" };
 	if (p >= lo)
-		return { label: "W: med", cls: "pnyx-warn", full: "Wahrheit: medium" };
-	return { label: "W: low", cls: "pnyx-good", full: "Wahrheit: low" };
+		return { label: "W: med", cls: "pnyx-mid", full: "Wahrheit: medium" };
+	return { label: "W: low", cls: "pnyx-low", full: "Wahrheit: low" };
 }
 
 function aqLabel(p) {
 	if (p > 0.65)
 		return {
 			label: "R: strong",
-			cls: "pnyx-good",
+			cls: "pnyx-low",
 			full: "Richtigkeit: strong",
 		};
 	if (p >= 0.35)
-		return { label: "R: mixed", cls: "pnyx-warn", full: "Richtigkeit: mixed" };
-	return { label: "R: weak", cls: "pnyx-danger", full: "Richtigkeit: weak" };
+		return { label: "R: mixed", cls: "pnyx-mid", full: "Richtigkeit: mixed" };
+	return { label: "R: weak", cls: "pnyx-high", full: "Richtigkeit: weak" };
 }
 
 // ─── V2: Claim extraction (inline, same algo as demo page) ───
@@ -194,7 +194,7 @@ function createBadge(scores, text) {
 	let aiHtml = "";
 	if (scores.erscheinung.aiProb >= aiThresh) {
 		const ind = scores.erscheinung.tier === "heuristic" ? " (pattern)" : "";
-		aiHtml = `<span class="pnyx-dot">&middot;</span><span class="pnyx-tag pnyx-warn">Wahrhaftigkeit: AI-likely${ind}</span>`;
+		aiHtml = `<span class="pnyx-dot">&middot;</span><span class="pnyx-tag pnyx-mid">Wahrhaftigkeit: AI-likely${ind}</span>`;
 	} else if (scores.erscheinung.aiProb >= aiThresh * 0.6) {
 		aiHtml = `<span class="pnyx-dot">&middot;</span><span class="pnyx-tag pnyx-muted">Wahrhaftigkeit: uncertain</span>`;
 	}
@@ -205,7 +205,7 @@ function createBadge(scores, text) {
 		const claimItems = claims
 			.map((c) => {
 				const riskCls =
-					c.risk === "high" ? "danger" : c.risk === "medium" ? "warn" : "good";
+					c.risk === "high" ? "high" : c.risk === "medium" ? "mid" : "low";
 				const riskText =
 					c.risk === "high"
 						? "unsupported"
@@ -240,7 +240,7 @@ function createBadge(scores, text) {
       <span class="pnyx-tag ${aq.cls}">${aq.full} ${aqPct}%</span>
       ${aiHtml}
       <span class="pnyx-dot">&middot;</span>
-      <span class="pnyx-tag pnyx-good">${claimCount} claim${claimCount === 1 ? "" : "s"}</span>
+      <span class="pnyx-tag pnyx-low">${claimCount} claim${claimCount === 1 ? "" : "s"}</span>
     </div>
     ${claimsHtml}
   `;
@@ -400,11 +400,7 @@ function showPauseOverlay(postEl, claims) {
         ${maxClaims
 					.map((c, i) => {
 						const riskCls =
-							c.risk === "high"
-								? "danger"
-								: c.risk === "medium"
-									? "warn"
-									: "good";
+							c.risk === "high" ? "high" : c.risk === "medium" ? "mid" : "low";
 						const riskText =
 							c.risk === "high"
 								? "unsupported"

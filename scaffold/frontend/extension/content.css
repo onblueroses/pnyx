@@ -159,9 +159,9 @@
   margin-left: 4px;
   white-space: nowrap;
 }
-.pnyx-claim-risk.danger { background: #F8F4F0; color: #6B5442; }
-.pnyx-claim-risk.warn { background: #F8F4F0; color: #6B5442; }
-.pnyx-claim-risk.good { background: #F8F4F0; color: #6B5442; }
+.pnyx-claim-risk.high { background: #F8F4F0; color: #6B5442; }
+.pnyx-claim-risk.mid { background: #F8F4F0; color: #6B5442; }
+.pnyx-claim-risk.low { background: #F8F4F0; color: #6B5442; }
 .pnyx-pause-prompt {
   font-size: 11px;
   color: #666;

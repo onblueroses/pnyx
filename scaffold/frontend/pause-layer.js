@@ -5,14 +5,20 @@
 
 const activeTimers = new Map();
 
+function escapeHtml(str) {
+	const div = document.createElement("div");
+	div.textContent = str;
+	return div.innerHTML;
+}
+
 function riskLabel(risk) {
 	switch (risk) {
 		case "high":
-			return { cls: "danger", text: "unsupported" };
+			return { cls: "high", text: "unsupported" };
 		case "medium":
-			return { cls: "warn", text: "unverified" };
+			return { cls: "mid", text: "unverified" };
 		case "low":
-			return { cls: "good", text: "grounded" };
+			return { cls: "low", text: "grounded" };
 		default:
 			return { cls: "muted", text: "unknown" };
 	}
@@ -35,12 +41,10 @@ export function createPauseOverlay(postId, claims, onContinue, onSkip) {
         </div>
       </div>
     `;
-		overlay
-			.querySelector(".pnyx-pause-skip")
-			.addEventListener("click", (e) => {
-				e.preventDefault();
-				onSkip();
-			});
+		overlay.querySelector(".pnyx-pause-skip").addEventListener("click", (e) => {
+			e.preventDefault();
+			onSkip();
+		});
 		return overlay;
 	}
 
@@ -54,7 +58,7 @@ export function createPauseOverlay(postId, claims, onContinue, onSkip) {
 						const rl = riskLabel(c.risk);
 						return `<label class="pnyx-pause-claim">
             <input type="checkbox" data-claim-index="${i}">
-            <span>"${c.text}"</span>
+            <span>"${escapeHtml(c.text)}"</span>
             <span class="pnyx-claim-risk ${rl.cls}">${rl.text}</span>
           </label>`;
 					})

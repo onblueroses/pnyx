@@ -299,8 +299,8 @@ function renderSummary() {
 
 	const coherenceBg =
 		state.coherence.tensions === 0
-			? "background:var(--ag-good-light);color:var(--ag-good)"
-			: "background:var(--ag-warn-light);color:var(--ag-warn)";
+			? "background:var(--pnyx-surface);color:var(--pnyx-primary)"
+			: "background:var(--pnyx-attention-light);color:var(--pnyx-attention)";
 
 	root.innerHTML = `
     <div class="explore-summary">

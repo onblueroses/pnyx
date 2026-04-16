@@ -6,9 +6,9 @@ Built for the Agora Hackathon x TUM.ai E-Lab (April 2026), Challenge Cluster 02:
 
 ## What it does
 
-Pnyx runs two AI models entirely on-device (no data leaves the browser) and adds four behavioral layers to social media:
+Pnyx runs AI scoring entirely on-device (no data leaves the browser) and adds four behavioral layers to social media:
 
-**SEE** - Badges on posts showing what claims are being made and whether reasoning is present. Powered by the Habermas model (DeBERTa-v3-small, F1 0.974) and an 85-signal heuristic tier for AI-generated text detection.
+**SEE** - Badges on posts showing what claims are being made and whether reasoning is present. Powered by the Habermas model (DeBERTa-v3-small, 141M params, F1 0.974) and an 85-signal heuristic tier for AI-generated text detection.
 
 **PAUSE** - When you click Reply, an overlay appears showing the extracted claims as checkboxes. Pick what you're actually responding to before writing.
 
@@ -57,7 +57,7 @@ Then in Chrome:
 2. Enable Developer mode
 3. Click "Load unpacked" and select the `scaffold/frontend/extension/` directory
 
-The extension injects Pnyx into LinkedIn and X/Twitter feeds. `setup.sh` copies model files, detection modules, and vendor libraries into the extension directory.
+The extension injects Pnyx into LinkedIn feeds. `setup.sh` copies model files, detection modules, and vendor libraries into the extension directory.
 
 ## Architecture
 
@@ -110,7 +110,6 @@ scripts/                 Training pipeline
 data/                    Demo datasets + source credibility
 docs/                    Model contracts (architecture, I/O specs)
 kb/                      Research notes (problem space, prior art)
-pitch/                   Presentation slides + demo recording
 ```
 
 ## Design
