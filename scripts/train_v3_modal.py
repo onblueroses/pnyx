@@ -60,7 +60,6 @@ def train(
     import json
     import math
     import os
-    import random
     import time
 
     import numpy as np
@@ -76,7 +75,6 @@ def train(
 
     WARMUP_RATIO = 0.1
     WEIGHT_DECAY = 0.01
-    VAL_SPLIT = 0.1
 
     device = torch.device("cuda")
     print(f"GPU: {torch.cuda.get_device_name(0)}")
@@ -108,11 +106,18 @@ def train(
             dist[v] = dist.get(v, 0) + 1
         print(f"  {dim}: dist={dict(sorted(dist.items()))}")
 
-    random.seed(42)
-    random.shuffle(all_data)
-    val_size = int(len(all_data) * VAL_SPLIT)
-    val_data = all_data[:val_size]
-    train_data = all_data[val_size:]
+    import hashlib
+
+    val_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() >= "cc"
+    ]
+    train_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() < "cc"
+    ]
     print(f"Train: {len(train_data)}  Val: {len(val_data)}")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)

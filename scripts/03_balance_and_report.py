@@ -16,9 +16,19 @@ TARGET_TOTAL = 10000
 
 def load_labeled() -> list[dict]:
     items = []
+    seen_texts: set[str] = set()
+    dupes = 0
     with open(INPUT_FILE) as f:
         for line in f:
-            items.append(json.loads(line))
+            item = json.loads(line)
+            key = item.get("text", "").strip()
+            if key in seen_texts:
+                dupes += 1
+                continue
+            seen_texts.add(key)
+            items.append(item)
+    if dupes:
+        print(f"Dedup: removed {dupes} duplicate texts")
     return items
 
 

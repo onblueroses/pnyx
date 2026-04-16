@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -85,7 +86,6 @@ def main():
         print("Dry run - exiting.")
         return
 
-    import random
     import time
 
     import torch
@@ -107,12 +107,17 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
     os.makedirs(os.path.join(args.out_dir, "onnx"), exist_ok=True)
 
-    # Train/val split
-    random.seed(42)
-    random.shuffle(all_data)
-    val_size = int(len(all_data) * args.val_split)
-    val_data = all_data[:val_size]
-    train_data = all_data[val_size:]
+    # Train/val split (hash-based, deterministic regardless of load order)
+    val_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() >= "cc"
+    ]
+    train_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() < "cc"
+    ]
     print(f"Train: {len(train_data)}  Val: {len(val_data)}")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)

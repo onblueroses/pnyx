@@ -66,12 +66,19 @@ def main():
         with open(sample_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        articles = data.get("articles", [])
+        if isinstance(data, list):
+            articles = data
+        else:
+            articles = data.get("articles", [])
+
         enriched_articles, stats = enrich_articles(articles, credibility_db)
 
-        output = dict(data)
-        output["articles"] = enriched_articles
-        output["credibility_stats"] = stats
+        if isinstance(data, list):
+            output = {"articles": enriched_articles, "credibility_stats": stats}
+        else:
+            output = dict(data)
+            output["articles"] = enriched_articles
+            output["credibility_stats"] = stats
 
         output_path = ENRICHED_DIR / sample_file.name
         with open(output_path, "w", encoding="utf-8") as f:

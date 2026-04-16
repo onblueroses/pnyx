@@ -204,10 +204,23 @@ async def main():
             ]
             print(f"  On target: {len(on_target)}")
 
-            # Append ALL labeled items to the main file (balance step will sort them)
+            # Append new labeled items, skipping duplicates of existing texts
+            existing_texts: set[str] = set()
+            if LABELED_FILE.exists():
+                with open(LABELED_FILE) as ef:
+                    for eline in ef:
+                        existing_texts.add(json.loads(eline).get("text", "").strip())
+            new_count = 0
             with open(LABELED_FILE, "a") as f:
                 for item in labeled:
+                    if item.get("text", "").strip() in existing_texts:
+                        continue
+                    existing_texts.add(item["text"].strip())
                     f.write(json.dumps(item, ensure_ascii=False) + "\n")
+                    new_count += 1
+            print(
+                f"  Appended {new_count} new items ({len(labeled) - new_count} duplicates skipped)"
+            )
 
     # Print updated distribution
     from collections import Counter

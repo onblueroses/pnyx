@@ -284,7 +284,16 @@ def temperature_sweep(model, tokenizer, data):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data", default="data/training/discourse_quality_10k.jsonl")
+    parser.add_argument(
+        "--data",
+        default="data/training/discourse_quality_10k.jsonl",
+        help="Training data (used for temperature sweep)",
+    )
+    parser.add_argument(
+        "--eval-data",
+        default=None,
+        help="Held-out evaluation data (used for metrics/calibration)",
+    )
     parser.add_argument("--n", type=int, default=1000)
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--sweep", action="store_true", help="Run temperature sweep")
@@ -292,19 +301,30 @@ def main():
 
     model = load_model(args.checkpoint)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    data = load_eval_data(args.data, args.n)
 
-    print(f"Evaluating on {len(data)} samples (T={args.temperature})")
+    # Use held-out eval data if provided, otherwise warn and fall back to training data
+    eval_path = args.eval_data or args.data
+    if not args.eval_data:
+        print(
+            "WARNING: No --eval-data provided. Evaluating on training data - metrics may be optimistically biased."
+        )
+    eval_data = load_eval_data(eval_path, args.n)
 
-    results = get_predictions(model, tokenizer, data, temperature=args.temperature)
+    print(
+        f"Evaluating on {len(eval_data)} samples from {eval_path} (T={args.temperature})"
+    )
+
+    results = get_predictions(model, tokenizer, eval_data, temperature=args.temperature)
     print_metrics(results)
     print_calibration(results)
-    print_failure_modes(results, data)
+    print_failure_modes(results, eval_data)
 
     if args.sweep:
-        best_t = temperature_sweep(model, tokenizer, data)
+        sweep_data = load_eval_data(args.data, args.n)
+        print(f"\nTemperature sweep on training data ({len(sweep_data)} samples)...")
+        best_t = temperature_sweep(model, tokenizer, sweep_data)
         print(f"\nRe-running eval with recommended T={best_t}...")
-        results = get_predictions(model, tokenizer, data, temperature=best_t)
+        results = get_predictions(model, tokenizer, eval_data, temperature=best_t)
         print_metrics(results)
         print_calibration(results)
 

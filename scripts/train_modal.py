@@ -29,10 +29,10 @@ vol = modal.Volume.from_name("deliberation-data", create_if_missing=True)
     volumes={"/data": vol},
 )
 def train(epochs: int = 6, batch_size: int = 32, lr: float = 2e-5):
+    import hashlib
     import json
     import math
     import os
-    import random
     import time
 
     import torch  # type: ignore[import-not-found]
@@ -49,7 +49,6 @@ def train(epochs: int = 6, batch_size: int = 32, lr: float = 2e-5):
     HEAD_SIZES = {"justification": 4, "respect": 4, "constructiveness": 3}
     WARMUP_RATIO = 0.1
     WEIGHT_DECAY = 0.01
-    VAL_SPLIT = 0.1
     LOG_EVERY = 100
     OUT_DIR = "/data/output"
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -71,11 +70,17 @@ def train(epochs: int = 6, batch_size: int = 32, lr: float = 2e-5):
             dist[v] = dist.get(v, 0) + 1
         print(f"  {dim}: {len(labeled)} labeled, dist={dict(sorted(dist.items()))}")
 
-    random.seed(42)
-    random.shuffle(all_data)
-    val_size = int(len(all_data) * VAL_SPLIT)
-    val_data = all_data[:val_size]
-    train_data = all_data[val_size:]
+    # Hash-based split: deterministic regardless of load order
+    val_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() >= "cc"
+    ]
+    train_data = [
+        r
+        for r in all_data
+        if hashlib.sha256(r["text"].strip().encode()).hexdigest() < "cc"
+    ]
     print(f"Train: {len(train_data)}  Val: {len(val_data)}")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
