@@ -6,6 +6,7 @@ set -e
 cd "$(dirname "$0")"
 
 echo "Copying detection module..."
+rm -rf ./detection/
 cp -r ../detection/ ./detection/
 
 echo "Patching detection module for MV3 CSP (CDN -> vendored imports)..."
@@ -21,10 +22,12 @@ sed -i \
 echo "  Patched slop-inference.js imports + tokenizer path"
 
 echo "Copying Habermas model..."
+rm -rf ./model/
 mkdir -p model
 cp ../model/model.onnx ../model/tokenizer.json ../model/tokenizer_config.json ../model/config.json ./model/
 
 echo "Copying Erscheinung model..."
+rm -rf ./model-slop/
 mkdir -p model-slop
 cp ../model-slop/model.onnx ../model-slop/token_remap.json ./model-slop/
 

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from pipeline import analyze_text, get_demo_feed
+from .pipeline import analyze_text, get_demo_feed
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 

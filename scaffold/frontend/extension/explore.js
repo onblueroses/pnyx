@@ -55,10 +55,13 @@ function saveConfig() {
 
 // --- URL Params ---
 
+const VALID_RISK_LEVELS = ["low", "medium", "high"];
+
 function initFromParams() {
 	const params = new URLSearchParams(window.location.search);
 	state.claim = params.get("claim") || "";
-	state.risk = params.get("risk") || "medium";
+	const rawRisk = params.get("risk") || "medium";
+	state.risk = VALID_RISK_LEVELS.includes(rawRisk) ? rawRisk : "medium";
 	renderOpening();
 }
 
@@ -82,13 +85,17 @@ function renderOpening() {
         Steel-man the argument, consider concessions, or escalate the stakes.
         Each choice shapes the next.
       </p>
-      <button class="explore-begin-btn" ${hasKey && state.claim ? "" : "disabled"}
-        onclick="beginExploration()">
+      <button class="explore-begin-btn" ${hasKey && state.claim ? "" : "disabled"}>
         Begin Exploration
       </button>
       ${hasKey ? "" : '<p style="margin-top:12px;font-size:12px;color:var(--pnyx-primary-mid)">Configure your API key in Settings to begin.</p>'}
     </div>
   `;
+
+	const beginBtn = root.querySelector(".explore-begin-btn");
+	if (beginBtn) {
+		beginBtn.addEventListener("click", () => beginExploration());
+	}
 
 	const claimInput = document.getElementById("claim-input");
 	if (claimInput) {
@@ -126,8 +133,7 @@ function renderBeat(beatIndex) {
         ${beat.options
 					.map(
 						(opt, i) => `
-          <button class="explore-option option-${opt.type}"
-            onclick="selectOption(${beatIndex}, ${i})">
+          <button class="explore-option option-${opt.type}" data-beat="${beatIndex}" data-option="${i}">
             <span class="explore-option-type">${opt.type}</span>
             <span class="explore-option-text">${escapeHtml(opt.text)}</span>
             <span class="explore-option-preview">${escapeHtml(opt.preview)}</span>
@@ -140,6 +146,16 @@ function renderBeat(beatIndex) {
   `;
 
 	root.innerHTML = html;
+
+	// Bind option click handlers
+	root
+		.querySelectorAll(".explore-option[data-beat][data-option]")
+		.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				selectOption(parseInt(btn.dataset.beat), parseInt(btn.dataset.option));
+			});
+		});
+
 	// Scroll to the new beat
 	document
 		.getElementById(`beat-${beatIndex}`)
@@ -307,11 +323,18 @@ function renderSummary() {
       </div>
 
       <div class="explore-summary-actions">
-        <button class="explore-btn-restart" onclick="restartExploration()">Start Over</button>
-        <button class="explore-btn-back" onclick="window.close()">Back to Feed</button>
+        <button class="explore-btn-restart">Start Over</button>
+        <button class="explore-btn-back">Back to Feed</button>
       </div>
     </div>
   `;
+
+	root
+		.querySelector(".explore-btn-restart")
+		?.addEventListener("click", () => restartExploration());
+	root
+		.querySelector(".explore-btn-back")
+		?.addEventListener("click", () => window.close());
 
 	renderChainSidebar();
 }
@@ -328,10 +351,16 @@ function renderError(message, retryFn) {
 	html += `
     <div class="explore-error">
       ${escapeHtml(message)}
-      ${retryFn ? `<button onclick="${retryFn}">Retry</button>` : ""}
+      ${retryFn ? `<button class="explore-retry-btn">Retry</button>` : ""}
     </div>
   `;
 	root.innerHTML = html;
+
+	if (retryFn) {
+		root
+			.querySelector(".explore-retry-btn")
+			?.addEventListener("click", retryFn);
+	}
 }
 
 // --- Actions ---
@@ -354,9 +383,8 @@ async function beginExploration() {
 		state.beats[0] = beat;
 		renderBeat(0);
 	} catch (err) {
-		renderError(
-			`Failed to start exploration: ${err.message}`,
-			"beginExploration()",
+		renderError(`Failed to start exploration: ${err.message}`, () =>
+			beginExploration(),
 		);
 	}
 }
@@ -408,9 +436,8 @@ async function selectOption(beatIndex, optionIndex) {
 
 		renderBeat(beatIndex + 1);
 	} catch (err) {
-		renderError(
-			`Failed to generate next beat: ${err.message}`,
-			`retryBeat(${beatIndex + 1})`,
+		renderError(`Failed to generate next beat: ${err.message}`, () =>
+			retryBeat(beatIndex + 1),
 		);
 	}
 }
@@ -422,9 +449,8 @@ async function retryBeat(beatIndex) {
 		state.beats[beatIndex] = beat;
 		renderBeat(beatIndex);
 	} catch (err) {
-		renderError(
-			`Failed to generate beat: ${err.message}`,
-			`retryBeat(${beatIndex})`,
+		renderError(`Failed to generate beat: ${err.message}`, () =>
+			retryBeat(beatIndex),
 		);
 	}
 }
@@ -648,12 +674,6 @@ function escapeHtml(str) {
 	div.textContent = str;
 	return div.innerHTML;
 }
-
-// --- Expose to onclick handlers ---
-window.beginExploration = beginExploration;
-window.selectOption = selectOption;
-window.retryBeat = retryBeat;
-window.restartExploration = restartExploration;
 
 // --- Init ---
 document.addEventListener("DOMContentLoaded", () => {

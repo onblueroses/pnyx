@@ -17,7 +17,10 @@ async function ensureOffscreen() {
 			justification:
 				"ONNX Runtime WASM inference for Habermas + Erscheinung models",
 		});
-	})();
+	})().catch((err) => {
+		offscreenPromise = null;
+		throw err;
+	});
 	return offscreenPromise;
 }
 

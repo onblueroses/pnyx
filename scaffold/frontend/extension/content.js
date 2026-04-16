@@ -278,7 +278,10 @@ async function processPost(postEl) {
 	pendingElements.add(postEl);
 
 	const text = extractText(postEl);
-	if (!text || text.length < 20) return;
+	if (!text || text.length < 20) {
+		pendingElements.delete(postEl);
+		return;
+	}
 
 	const hash = hashText(text);
 
@@ -297,6 +300,7 @@ async function processPost(postEl) {
 			scoreCache.set(hash, scores);
 		} catch (e) {
 			console.warn("Pnyx: scoring failed", e.message);
+			pendingElements.delete(postEl);
 			return;
 		}
 	}
@@ -305,7 +309,10 @@ async function processPost(postEl) {
 		const injectTarget = platform.injectAfter
 			? postEl.querySelector(platform.injectAfter)
 			: findSocialBar(postEl);
-		if (!injectTarget) return;
+		if (!injectTarget) {
+			pendingElements.delete(postEl);
+			return;
+		}
 		const badge = createBadge(scores, text);
 		injectTarget.insertAdjacentElement("afterend", badge);
 		analyzedElements.add(postEl);
@@ -366,6 +373,7 @@ async function processPost(postEl) {
 		}
 	} catch (e) {
 		console.warn("Pnyx: badge injection failed for post", e.message);
+		pendingElements.delete(postEl);
 	}
 }
 

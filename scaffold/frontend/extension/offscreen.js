@@ -144,7 +144,7 @@ async function scoreAI(text) {
 			inferenceMs: r.inferenceMs || 0,
 		};
 	} catch {
-		return { aiProb: 0, verdict: "clean", tier: "error", inferenceMs: 0 };
+		return { aiProb: 0, verdict: "unavailable", tier: "error", inferenceMs: 0 };
 	}
 }
 

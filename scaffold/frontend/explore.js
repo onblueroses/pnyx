@@ -55,10 +55,13 @@ function saveConfig() {
 
 // --- URL Params ---
 
+const VALID_RISK_LEVELS = ["low", "medium", "high"];
+
 function initFromParams() {
 	const params = new URLSearchParams(window.location.search);
 	state.claim = params.get("claim") || "";
-	state.risk = params.get("risk") || "medium";
+	const rawRisk = params.get("risk") || "medium";
+	state.risk = VALID_RISK_LEVELS.includes(rawRisk) ? rawRisk : "medium";
 	renderOpening();
 }
 
