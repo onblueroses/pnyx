@@ -53,7 +53,7 @@ Anyone who uses LinkedIn or X/Twitter. The Chrome extension works inside existin
 ## V1 Foundation (Built, Working)
 
 The V1 infrastructure is complete and proven:
-- Habermas model (DeBERTa-v3-small, F1 0.974, 271 MB FP16)
+- Habermas model (DeBERTa-v3-small, F1 0.974 against model-generated labels, 271 MB FP16)
 - Erscheinung heuristic tier (85 patterns, <1ms). ML model (v0.6) disabled - overfit to RAID dataset, retrain in progress (v0.7)
 - Demo page with LinkedIn-styled feed, 7 scored posts
 - Chrome MV3 extension with offscreen ONNX inference
