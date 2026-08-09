@@ -6,7 +6,7 @@
 
 | Version | Base | Params | Size | Status |
 |---------|------|--------|------|--------|
-| v3 | DeBERTa-v3-small (`cross-encoder/nli-deberta-v3-small`) | 141M | 271 MB FP16 | trained, F1 0.974 avg (0.977 CR, 0.972 AQ) |
+| v3 | DeBERTa-v3-small (`cross-encoder/nli-deberta-v3-small`) | 141M | 271 MB FP16 | trained, F1 0.974 avg (0.977 CR, 0.972 AQ) — internal macro-F1 against model-generated labels; see [README](../README.md#what-that-number-measures) |
 | v2 | DeBERTa-v3-small (`cross-encoder/nli-deberta-v3-small`) | 141M | 271 MB FP16 | superseded by v3 |
 
 ## Inputs
