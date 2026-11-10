@@ -1,6 +1,6 @@
 /**
  * Content script - scans feeds, requests scores from offscreen, injects badges.
- * Patterns adapted from linkedin-detox: MutationObserver + content hashing + WeakSet.
+ * Patterns: MutationObserver + content hashing + WeakSet.
  */
 
 const PLATFORM_SELECTORS = {
