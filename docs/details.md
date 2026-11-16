@@ -23,19 +23,37 @@ All scoring runs on-device through ONNX Runtime Web (WASM). Inference makes no A
 
 | Component | Tech | Size |
 |-----------|------|------|
-| Habermas model | DeBERTa-v3-small, dual-head (claim risk + argument quality) | 271 MB FP16 |
-| Erscheinung model | DeBERTa-v3-small, pruned vocab (70K tokens) + 85 heuristic signals | 126 MB FP16 |
+| Habermas model | DeBERTa-v3-small, dual-head (claim risk + argument quality) | 270.3 MiB ONNX, FP16 |
+| Erscheinung model | DeBERTa-v3-small, pruned vocab (70K tokens) + 85 heuristic signals | 125.7 MiB ONNX, FP16 |
 | Inference | ONNX Runtime Web, WASM, single-thread SIMD | ~500-900ms per post |
 | Extension | Chrome MV3, offscreen document, MutationObserver feed scanning | |
 | Explore | Client-side OpenRouter API (user's own key, localStorage) | |
 
 ### How inference works
 
-1. Post text goes into a Web Worker (`inference-worker.js`).
-2. The Erscheinung heuristic tier runs first (<1ms). If the score is 4.0 or more, the worker skips ML inference.
-3. Both ONNX models run in parallel (Habermas: 256 tokens, Erscheinung: 128 tokens).
-4. The scores go to `claim-extractor.js`, which extracts claims at sentence level.
-5. Badges, the Pause Layer and Reply Tags render from the extracted claims.
+The demo sends posts to `inference-worker.js`. It loads Habermas with a 256-token limit and uses heuristics for Erscheinung. Its `loadErscheinung()` function does not load an ONNX model.
+
+The extension loads both models through `extension/offscreen.js`. Habermas scores claim risk and argument quality. Erscheinung checks the heuristic score first and skips its 128-token ML inference when that score is at least 4.0. The two scoring functions run in parallel.
+
+The scores go to `claim-extractor.js`. The page renders badges, the Pause Layer and Reply Tags from the extracted claims.
+
+### Model file sizes
+
+Hugging Face file metadata lists these uncompressed ONNX sizes:
+
+| Model | Revision | Bytes | MiB (bytes / 1,048,576) |
+|---|---|---:|---:|
+| Habermas v3 | [b30f713](https://huggingface.co/onblueroses/pnyx-habermas/tree/b30f713d2d371afee7221edeadf485b5d0f258a8) | 283,475,079 | 270.3 |
+| Erscheinung v0.7 | [1cea3a5](https://huggingface.co/onblueroses/pnyx-erscheinung/tree/1cea3a5df75f02872072c4b56b67063c2f692dcc) | 131,778,832 | 125.7 |
+| Total | Both ONNX files | 415,253,911 | 396.0 |
+
+The retained model files match the sizes and SHA-256 hashes in that metadata. With both files installed, reproduce the byte count with:
+
+```bash
+wc -c scaffold/frontend/model/model.onnx scaffold/frontend/model-slop/model.onnx
+```
+
+These counts exclude tokenizers, configs, token remapping and JavaScript or WASM libraries. They do not measure transferred bytes or browser memory use. Transfer size depends on the loaded components, HTTP compression and cache state. Browser memory use is unmeasured.
 
 ## Training pipeline
 

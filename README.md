@@ -4,7 +4,7 @@ Pnyx is a Chrome extension and a demo page that make listening visible on social
 
 ## What it does
 
-Pnyx runs two AI models on-device. No post data leaves the browser for scoring. It adds four layers to a feed:
+The Chrome extension runs two AI models on-device. No post data leaves the browser for scoring. It adds four layers to a feed:
 
 | Layer | What you see |
 |-------|--------------|
@@ -18,10 +18,10 @@ The Habermas model scores claim risk and argument quality. Its reported F1 is 0.
 ## How a post is scored
 
 ```text
-post text -> heuristic tier -> Habermas + Erscheinung (ONNX, WASM) -> claim extractor -> badges, pause, tags
+post text -> Habermas + Erscheinung (heuristics and ONNX) -> claim extractor -> badges, pause, tags
 ```
 
-If the heuristic score is 4.0 or more, the worker skips the ML models.
+If the heuristic score is 4.0 or more, Erscheinung skips its ML inference. Habermas scores separately.
 
 ## Model files
 
@@ -29,8 +29,10 @@ The ONNX model files are not in this repo because they are too large. Download t
 
 | Model | File | Size | Hugging Face |
 |-------|------|------|--------------|
-| Habermas v3 | `scaffold/frontend/model/model.onnx` | 271 MB | [onblueroses/pnyx-habermas](https://huggingface.co/onblueroses/pnyx-habermas) |
-| Erscheinung v0.7 | `scaffold/frontend/model-slop/model.onnx` | 126 MB | [onblueroses/pnyx-erscheinung](https://huggingface.co/onblueroses/pnyx-erscheinung) |
+| Habermas v3 | `scaffold/frontend/model/model.onnx` | 270.3 MiB | [onblueroses/pnyx-habermas](https://huggingface.co/onblueroses/pnyx-habermas) |
+| Erscheinung v0.7 | `scaffold/frontend/model-slop/model.onnx` | 125.7 MiB | [onblueroses/pnyx-erscheinung](https://huggingface.co/onblueroses/pnyx-erscheinung) |
+
+The two ONNX files total 415,253,911 bytes (396.0 MiB). This counts model files only. Tokenizers and runtime files add to downloads. Browser memory use is unmeasured. [Size evidence](docs/details.md#model-file-sizes) gives exact bytes and source revisions.
 
 The repo includes the tokenizer files and configs. If the model files are missing, the demo uses only heuristic scoring.
 
@@ -42,7 +44,7 @@ python -m http.server 8080
 # Open http://localhost:8080/index.html
 ```
 
-The models load on the first visit (~460 MB). The browser keeps them in its cache after that. Seven pre-scored posts show all four layers.
+The demo loads Habermas and uses heuristics for Erscheinung. Download traffic depends on runtime files and the browser cache. Seven pre-scored posts show all four layers.
 
 ## Install the Chrome extension
 
